@@ -1,0 +1,94 @@
+.column {
+  background: #ebecf0;
+  border-radius: 8px;
+  padding: 8px;
+  min-width: 272px;
+  max-width: 272px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 160px);
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+}
+
+.column-header h3 {
+  margin: 0;
+  color: #172b4d;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.add-card-btn {
+  background: transparent;
+  color: #6b778c;
+  border: none;
+  border-radius: 3px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+  opacity: 0.8;
+}
+
+.add-card-btn:hover {
+  background: #ddd;
+  color: #172b4d;
+  opacity: 1;
+}
+
+.column-content {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0 4px;
+}
+
+.column-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.column-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.column-content::-webkit-scrollbar-thumb {
+  background: #c1c7d0;
+  border-radius: 4px;
+}
+
+.column-content::-webkit-scrollbar-thumb:hover {
+  background: #a5adba;
+}
+
+.add-card-area {
+  padding: 8px;
+  margin-top: auto;
+}
+
+.add-card-button {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #6b778c;
+  padding: 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  transition: all 0.1s ease;
+}
+
+.add-card-button:hover {
+  background: #ddd;
+  color: #172b4d;
+}

@@ -1,0 +1,45 @@
+.card {
+  background: #ffffff;
+  border-radius: 3px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 0 rgba(9, 45, 66, 0.25);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  border: none;
+  min-height: 20px;
+}
+
+.card:hover {
+  background: #f4f5f7;
+  box-shadow: 0 1px 3px rgba(9, 45, 66, 0.25);
+}
+
+.card h3 {
+  margin: 0 0 4px 0;
+  color: #172b4d;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  word-wrap: break-word;
+}
+
+.card p {
+  margin: 0;
+  color: #5e6c84;
+  font-size: 12px;
+  line-height: 16px;
+  word-wrap: break-word;
+}
+
+.card.priority-high {
+  border-left: 4px solid #ef5350;
+}
+
+.card.priority-medium {
+  border-left: 4px solid #ff9800;
+}
+
+.card.priority-low {
+  border-left: 4px solid #4caf50;
+}

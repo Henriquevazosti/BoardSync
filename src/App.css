@@ -1,0 +1,62 @@
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0079bf;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.board-container {
+  display: flex;
+  gap: 16px;
+  min-height: calc(100vh - 100px);
+  padding: 0;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+  .board-container {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .board-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .main-content {
+    padding: 10px;
+  }
+}
+
+.add-list-container {
+  min-width: 272px;
+  max-width: 272px;
+}
+
+.add-list-button {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.24);
+  border: none;
+  color: #ffffff;
+  padding: 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  transition: all 0.1s ease;
+  text-align: left;
+}
+
+.add-list-button:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
