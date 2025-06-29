@@ -4,13 +4,21 @@ import Header from './components/Header/Header';
 import Column from './components/Column/Column';
 import NewCardModal from './components/NewCardModal/NewCardModal';
 import CategoryFilter from './components/CategoryFilter/CategoryFilter';
+import DueDateFilter from './components/DueDateFilter/DueDateFilter';
 import BlockCardModal from './components/BlockCardModal/BlockCardModal';
 import LabelManager from './components/LabelManager/LabelManager';
 import UserManager from './components/UserManager/UserManager';
 import ThemeSelector from './components/ThemeSelector/ThemeSelector';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
-import { initialData, getSubtasks, isSubtask } from './data/initialData';
+import { 
+  initialData, 
+  getSubtasks, 
+  isSubtask, 
+  isOverdue, 
+  isDueToday, 
+  isDueSoon 
+} from './data/initialData';
 import './styles/themes.css';
 import './App.css';
 
@@ -24,6 +32,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedDateFilters, setSelectedDateFilters] = useState([]);
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
   const [selectedCardForBlock, setSelectedCardForBlock] = useState(null);
   const [isLabelManagerOpen, setIsLabelManagerOpen] = useState(false);
@@ -173,6 +182,9 @@ function App() {
       category: cardData.category,
       labels: cardData.labels || [],
       assignedUsers: cardData.assignedUsers || [],
+      dueDate: cardData.dueDate || null,
+      createdAt: cardData.createdAt || new Date().toISOString(),
+      completedAt: null,
       isBlocked: false,
       blockReason: ''
     };
@@ -226,6 +238,57 @@ function App() {
   const filterCardsByCategory = (cards) => {
     if (selectedCategories.length === 0) return cards;
     return cards.filter(card => selectedCategories.includes(card.category));
+  };
+
+  // Funções para filtros de data
+  const getCardsStats = () => {
+    const allCards = Object.values(data.cards);
+    
+    return {
+      total: allCards.length,
+      overdue: allCards.filter(card => isOverdue(card.dueDate)).length,
+      dueToday: allCards.filter(card => isDueToday(card.dueDate)).length,
+      dueSoon: allCards.filter(card => isDueSoon(card.dueDate)).length,
+      noDate: allCards.filter(card => !card.dueDate).length
+    };
+  };
+
+  const filterCardsByDate = (cards) => {
+    if (selectedDateFilters.length === 0) return cards;
+    
+    return cards.filter(card => {
+      return selectedDateFilters.some(filter => {
+        switch (filter) {
+          case 'overdue':
+            return isOverdue(card.dueDate);
+          case 'due-today':
+            return isDueToday(card.dueDate);
+          case 'due-soon':
+            return isDueSoon(card.dueDate);
+          case 'no-date':
+            return !card.dueDate;
+          default:
+            return false;
+        }
+      });
+    });
+  };
+
+  // Função para filtrar cards combinando categoria e data
+  const getFilteredCards = () => {
+    let filteredCards = Object.values(data.cards);
+    
+    // Aplicar filtros de categoria
+    if (selectedCategories.length > 0) {
+      filteredCards = filteredCards.filter(card => 
+        selectedCategories.includes(card.category)
+      );
+    }
+    
+    // Aplicar filtros de data
+    filteredCards = filterCardsByDate(filteredCards);
+    
+    return filteredCards;
   };
 
   const handleAddColumn = () => {
@@ -357,16 +420,25 @@ function App() {
         onLogout={handleLogout}
       />
       <div className="board">
-        <CategoryFilter 
-          selectedCategories={selectedCategories}
-          onCategoryToggle={handleCategoryToggle}
-          onClearAll={handleClearFilters}
-        />
+        <div className="filters-section">
+          <CategoryFilter 
+            selectedCategories={selectedCategories}
+            onCategoryToggle={handleCategoryToggle}
+            onClearAll={handleClearFilters}
+          />
+          <DueDateFilter
+            selectedFilters={selectedDateFilters}
+            onFiltersChange={setSelectedDateFilters}
+            cardsStats={getCardsStats()}
+          />
+        </div>
         <div className="board-content">
           {data.columnOrder.map((columnId) => {
             const column = data.columns[columnId];
             const allCards = column.cardIds.map(cardId => data.cards[cardId]);
-            const filteredCards = filterCardsByCategory(allCards);
+            const filteredCards = getFilteredCards().filter(card => 
+              allCards.some(c => c.id === card.id)
+            );
 
             return (
               <Column

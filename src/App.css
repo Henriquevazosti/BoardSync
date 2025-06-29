@@ -59,3 +59,29 @@
 .board::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
+
+/* Seção de filtros */
+.filters-section {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 0 8px;
+  overflow-x: auto;
+  flex-wrap: wrap;
+}
+
+.filters-section > * {
+  min-width: 250px;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .filters-section {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .filters-section > * {
+    min-width: auto;
+  }
+}

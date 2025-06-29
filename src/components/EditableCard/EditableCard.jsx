@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { categoryConfig, isSubtask, getParentCard, getMainCategories, getSubtaskCategories } from '../../data/initialData';
 import LabelSelector from '../LabelSelector/LabelSelector';
 import UserSelector from '../UserSelector/UserSelector';
+import DatePicker from '../DatePicker/DatePicker';
 import './EditableCard.css';
 
 const EditableCard = ({ card, columnId, allCards, allLabels, allUsers, onSave, onCancel, onManageLabels }) => {
@@ -12,7 +13,8 @@ const EditableCard = ({ card, columnId, allCards, allLabels, allUsers, onSave, o
     category: card.category,
     parentId: card.parentId || '',
     labels: card.labels || [],
-    assignedUsers: card.assignedUsers || []
+    assignedUsers: card.assignedUsers || [],
+    dueDate: card.dueDate || null
   });
 
   const titleRef = useRef(null);
@@ -38,7 +40,8 @@ const EditableCard = ({ card, columnId, allCards, allLabels, allUsers, onSave, o
         category: editedCard.category,
         parentId: isCurrentSubtask ? editedCard.parentId : undefined,
         labels: editedCard.labels,
-        assignedUsers: editedCard.assignedUsers
+        assignedUsers: editedCard.assignedUsers,
+        dueDate: editedCard.dueDate
       };
       onSave(updatedCard);
     }
@@ -209,6 +212,17 @@ const EditableCard = ({ card, columnId, allCards, allLabels, allUsers, onSave, o
             onUsersChange={(userIds) => setEditedCard(prev => ({ ...prev, assignedUsers: userIds }))}
             placeholder="Atribuir usuários..."
             isEditing={true}
+          />
+        </div>
+
+        {/* Data de Vencimento */}
+        <div className="form-group">
+          <DatePicker
+            value={editedCard.dueDate}
+            onChange={(date) => setEditedCard(prev => ({ ...prev, dueDate: date }))}
+            label="Data de Vencimento"
+            placeholder="Selecionar data de vencimento..."
+            clearable={true}
           />
         </div>
 

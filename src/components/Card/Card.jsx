@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { categoryConfig, isSubtask, getParentCard, getSubtasks, getCardLabels, getCardAssignedUsers } from '../../data/initialData';
+import { 
+  categoryConfig, 
+  isSubtask, 
+  getParentCard, 
+  getSubtasks, 
+  getCardLabels, 
+  getCardAssignedUsers,
+  formatDate,
+  getDueDateStatus
+} from '../../data/initialData';
 import EditableCard from '../EditableCard/EditableCard';
 import './Card.css';
 
@@ -24,6 +33,7 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlo
   const hasSubtasks = subtasks.length > 0;
   const cardLabels = getCardLabels(card, allLabels || {});
   const assignedUsers = getCardAssignedUsers(card, allUsers || {});
+  const dueDateStatus = getDueDateStatus(card.dueDate);
 
   const getDragTitle = () => {
     if (isCardSubtask && parentCard) {
@@ -193,6 +203,15 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlo
                 +{assignedUsers.length - 3}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {card.dueDate && (
+        <div className="card-due-date">
+          <div className={`due-date-badge ${dueDateStatus}`}>
+            <span className="due-date-icon">📅</span>
+            <span className="due-date-text">{formatDate(card.dueDate)}</span>
           </div>
         </div>
       )}

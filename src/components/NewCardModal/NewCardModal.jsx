@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { categoryConfig, getMainCategories, getSubtaskCategories, isSubtask } from '../../data/initialData';
 import LabelSelector from '../LabelSelector/LabelSelector';
 import UserSelector from '../UserSelector/UserSelector';
+import DatePicker from '../DatePicker/DatePicker';
 import './NewCardModal.css';
 
 const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, onManageLabels }) => {
@@ -12,6 +13,7 @@ const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, on
   const [parentId, setParentId] = useState('');
   const [selectedLabels, setSelectedLabels] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [dueDate, setDueDate] = useState(null);
 
   const mainCategories = getMainCategories();
   const subtaskCategories = getSubtaskCategories();
@@ -29,7 +31,10 @@ const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, on
         priority,
         category,
         labels: selectedLabels,
-        assignedUsers: selectedUsers
+        assignedUsers: selectedUsers,
+        dueDate,
+        createdAt: new Date().toISOString(),
+        completedAt: null
       };
       
       // Adicionar parentId se for subtarefa
@@ -45,6 +50,7 @@ const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, on
       setParentId('');
       setSelectedLabels([]);
       setSelectedUsers([]);
+      setDueDate(null);
     }
   };
 
@@ -155,6 +161,16 @@ const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, on
               onUsersChange={setSelectedUsers}
               placeholder="Atribuir usuários..."
               isEditing={true}
+            />
+          </div>
+
+          <div className="form-group">
+            <DatePicker
+              value={dueDate}
+              onChange={setDueDate}
+              label="Data de Vencimento"
+              placeholder="Selecionar data de vencimento..."
+              clearable={true}
             />
           </div>
           

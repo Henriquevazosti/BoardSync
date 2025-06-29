@@ -1,0 +1,228 @@
+.date-picker {
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.date-picker-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--color-textPrimary);
+  font-size: 14px;
+}
+
+.date-picker-input {
+  position: relative;
+  width: 100%;
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-base);
+  background: var(--color-cardBackground);
+  transition: all var(--animation-duration) ease;
+  overflow: hidden;
+}
+
+.date-picker-input:hover {
+  border-color: var(--color-primary);
+}
+
+.date-picker-input:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primaryLight);
+}
+
+.date-picker-input.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--color-borderLight);
+}
+
+.date-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+}
+
+.date-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all var(--animation-duration) ease;
+  min-height: 42px;
+}
+
+.date-display:hover {
+  background: var(--color-borderLight);
+}
+
+.date-text {
+  font-size: 14px;
+  color: var(--color-textPrimary);
+  font-weight: 500;
+}
+
+.date-placeholder {
+  color: var(--color-textMuted);
+  font-size: 14px;
+}
+
+.date-icon {
+  font-size: 16px;
+  color: var(--color-textSecondary);
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.clear-date-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-textMuted);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--animation-duration) ease;
+  margin-right: 8px;
+}
+
+.clear-date-btn:hover {
+  background: var(--color-error);
+  transform: scale(1.1);
+}
+
+/* Estados das datas */
+.date-picker-input.overdue {
+  border-color: var(--color-error);
+  background: var(--color-errorLight);
+}
+
+.date-text.overdue {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+.date-picker-input.due-today {
+  border-color: var(--color-warning);
+  background: var(--color-warningLight);
+}
+
+.date-text.due-today {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+.date-picker-input.due-soon {
+  border-color: var(--color-primary);
+  background: var(--color-primaryLight);
+}
+
+.date-text.due-soon {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Indicadores visuais */
+.date-indicators {
+  margin-top: 4px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.date-indicator {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.date-indicator.overdue {
+  background: var(--color-errorLight);
+  color: var(--color-error);
+}
+
+.date-indicator.due-today {
+  background: var(--color-warningLight);
+  color: var(--color-warning);
+}
+
+.date-indicator.due-soon {
+  background: var(--color-primaryLight);
+  color: var(--color-primary);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .date-display {
+    padding: 8px 10px;
+    min-height: 38px;
+  }
+  
+  .date-text,
+  .date-placeholder {
+    font-size: 13px;
+  }
+  
+  .date-icon {
+    font-size: 14px;
+  }
+  
+  .clear-date-btn {
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+  }
+}
+
+/* Melhorias de acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .date-picker-input,
+  .date-display,
+  .clear-date-btn {
+    transition: none;
+  }
+}
+
+/* Suporte para modo escuro */
+.theme-dark .date-input {
+  color-scheme: dark;
+}
+
+/* Estados de foco melhorados */
+.date-picker-input:focus-within .date-display {
+  background: var(--color-primaryLight);
+}
+
+.date-picker-input:focus-within .date-text {
+  color: var(--color-primary);
+}
+
+/* Animações sutis */
+.date-picker-input {
+  transition: 
+    border-color var(--animation-duration) ease,
+    background-color var(--animation-duration) ease,
+    box-shadow var(--animation-duration) ease;
+}
+
+/* Estados de hover aprimorados */
+.date-picker-input:not(.disabled):hover .date-icon {
+  color: var(--color-primary);
+}
+
+.date-picker-input:not(.disabled):hover .date-placeholder {
+  color: var(--color-textSecondary);
+}
