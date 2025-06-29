@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { categoryConfig, getMainCategories, getSubtaskCategories, isSubtask } from '../../data/initialData';
+import LabelSelector from '../LabelSelector/LabelSelector';
+import UserSelector from '../UserSelector/UserSelector';
 import './NewCardModal.css';
 
-const NewCardModal = ({ onClose, onCreateCard, allCards }) => {
+const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, onManageLabels }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('media');
   const [category, setCategory] = useState('historia');
   const [parentId, setParentId] = useState('');
+  const [selectedLabels, setSelectedLabels] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState([]);
 
   const mainCategories = getMainCategories();
   const subtaskCategories = getSubtaskCategories();
@@ -23,7 +27,9 @@ const NewCardModal = ({ onClose, onCreateCard, allCards }) => {
         title: title.trim(),
         description: description.trim(),
         priority,
-        category
+        category,
+        labels: selectedLabels,
+        assignedUsers: selectedUsers
       };
       
       // Adicionar parentId se for subtarefa
@@ -37,6 +43,8 @@ const NewCardModal = ({ onClose, onCreateCard, allCards }) => {
       setPriority('media');
       setCategory('historia');
       setParentId('');
+      setSelectedLabels([]);
+      setSelectedUsers([]);
     }
   };
 
@@ -117,8 +125,7 @@ const NewCardModal = ({ onClose, onCreateCard, allCards }) => {
               placeholder="Descreva os detalhes do card..."
             />
           </div>
-          
-          <div className="form-group">
+            <div className="form-group">
             <label htmlFor="priority">Prioridade</label>
             <select
               id="priority"
@@ -129,6 +136,26 @@ const NewCardModal = ({ onClose, onCreateCard, allCards }) => {
               <option value="media">🟡 Média</option>
               <option value="alta">🔴 Alta</option>
             </select>
+          </div>
+
+          <div className="form-group">
+            <LabelSelector
+              availableLabels={allLabels || {}}
+              selectedLabels={selectedLabels}
+              onLabelsChange={setSelectedLabels}
+              onManageLabels={onManageLabels}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="users">Usuários</label>
+            <UserSelector
+              allUsers={allUsers || {}}
+              selectedUserIds={selectedUsers}
+              onUsersChange={setSelectedUsers}
+              placeholder="Atribuir usuários..."
+              isEditing={true}
+            />
           </div>
           
           <div className="modal-actions">

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { categoryConfig, isSubtask, getParentCard, getSubtasks } from '../../data/initialData';
+import { categoryConfig, isSubtask, getParentCard, getSubtasks, getCardLabels, getCardAssignedUsers } from '../../data/initialData';
 import EditableCard from '../EditableCard/EditableCard';
 import './Card.css';
 
-const Card = ({ card, columnId, allCards, onEditCard }) => {
+const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlockCard, onManageLabels }) => {
   const [isEditing, setIsEditing] = useState(false);
   const getPriorityClass = (priority) => {
     switch (priority) {
@@ -22,6 +22,8 @@ const Card = ({ card, columnId, allCards, onEditCard }) => {
   const parentCard = isCardSubtask ? getParentCard(card.id, allCards) : null;
   const subtasks = !isCardSubtask ? getSubtasks(card.id, allCards) : [];
   const hasSubtasks = subtasks.length > 0;
+  const cardLabels = getCardLabels(card, allLabels || {});
+  const assignedUsers = getCardAssignedUsers(card, allUsers || {});
 
   const getDragTitle = () => {
     if (isCardSubtask && parentCard) {
@@ -81,8 +83,11 @@ const Card = ({ card, columnId, allCards, onEditCard }) => {
         card={card}
         columnId={columnId}
         allCards={allCards}
+        allLabels={allLabels}
+        allUsers={allUsers}
         onSave={handleSave}
         onCancel={handleCancel}
+        onManageLabels={onManageLabels}
       />
     );
   }
@@ -91,11 +96,11 @@ const Card = ({ card, columnId, allCards, onEditCard }) => {
 
   return (
     <div
-      className={`card ${getPriorityClass(card.priority)} ${isCardSubtask ? 'subtask-card' : ''}`}
-      draggable="true"
+      className={`card ${getPriorityClass(card.priority)} ${isCardSubtask ? 'subtask-card' : ''} ${card.isBlocked ? 'blocked-card' : ''}`}
+      draggable={!card.isBlocked}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      title={getDragTitle()}
+      title={card.isBlocked ? `Card bloqueado: ${card.blockReason}` : getDragTitle()}
     >
       {isCardSubtask && parentCard && (
         <div className="subtask-header">
@@ -103,6 +108,16 @@ const Card = ({ card, columnId, allCards, onEditCard }) => {
           <span className="parent-card-title">
             {getCategoryInfo(parentCard.category).icon} {parentCard.title}
           </span>
+        </div>
+      )}
+
+      {card.isBlocked && (
+        <div className="block-indicator">
+          <span className="block-icon">🚫</span>
+          <span className="block-text">Bloqueado</span>
+          <div className="block-reason-preview">
+            {card.blockReason}
+          </div>
         </div>
       )}
       
@@ -122,6 +137,13 @@ const Card = ({ card, columnId, allCards, onEditCard }) => {
           >
             ✏️
           </button>
+          <button 
+            className={`block-btn ${card.isBlocked ? 'unblock' : 'block'}`}
+            onClick={() => onBlockCard(card)}
+            title={card.isBlocked ? 'Gerenciar bloqueio' : 'Bloquear card'}
+          >
+            {card.isBlocked ? '🔓' : '🚫'}
+          </button>
           <div className="drag-handle">⋮⋮</div>
         </div>
       </div>
@@ -129,6 +151,50 @@ const Card = ({ card, columnId, allCards, onEditCard }) => {
       <h4 className="card-title">{card.title}</h4>
       {card.description && (
         <p className="card-description">{card.description}</p>
+      )}
+
+      {cardLabels.length > 0 && (
+        <div className="card-labels">
+          {cardLabels.map((label) => (
+            <span
+              key={label.id}
+              className="card-label"
+              style={{
+                backgroundColor: label.bgColor,
+                color: label.color,
+                borderColor: label.color
+              }}
+            >
+              {label.name}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {assignedUsers.length > 0 && (
+        <div className="card-users">
+          <div className="assigned-users">
+            {assignedUsers.slice(0, 3).map((user) => (
+              <div
+                key={user.id}
+                className="user-avatar-small"
+                style={{
+                  backgroundColor: user.bgColor,
+                  color: user.color,
+                  border: `2px solid ${user.color}`
+                }}
+                title={`${user.name} (${user.email})`}
+              >
+                {user.avatar}
+              </div>
+            ))}
+            {assignedUsers.length > 3 && (
+              <div className="user-avatar-small user-avatar-count">
+                +{assignedUsers.length - 3}
+              </div>
+            )}
+          </div>
+        </div>
       )}
       
       <div className="card-footer">

@@ -2,7 +2,7 @@ import React from 'react';
 import Card from '../Card/Card';
 import './Column.css';
 
-const Column = ({ column, cards, totalCards, allCards, onAddCard, onMoveCard, onEditCard }) => {
+const Column = ({ column, cards, totalCards, allCards, allLabels, allUsers, onAddCard, onMoveCard, onEditCard, onBlockCard, onManageLabels }) => {
   const handleDragOver = (e) => {
     e.preventDefault();
     console.log('📍 Arrastando sobre a coluna:', column.title);
@@ -71,7 +71,11 @@ const Column = ({ column, cards, totalCards, allCards, onAddCard, onMoveCard, on
             card={card}
             columnId={column.id}
             allCards={allCards}
+            allLabels={allLabels}
+            allUsers={allUsers}
             onEditCard={onEditCard}
+            onBlockCard={onBlockCard}
+            onManageLabels={onManageLabels}
           />
         ))}
         

@@ -1,14 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { categoryConfig, isSubtask, getParentCard, getMainCategories, getSubtaskCategories } from '../../data/initialData';
+import LabelSelector from '../LabelSelector/LabelSelector';
+import UserSelector from '../UserSelector/UserSelector';
 import './EditableCard.css';
 
-const EditableCard = ({ card, columnId, allCards, onSave, onCancel }) => {
+const EditableCard = ({ card, columnId, allCards, allLabels, allUsers, onSave, onCancel, onManageLabels }) => {
   const [editedCard, setEditedCard] = useState({
     title: card.title,
     description: card.description || '',
     priority: card.priority,
     category: card.category,
-    parentId: card.parentId || ''
+    parentId: card.parentId || '',
+    labels: card.labels || [],
+    assignedUsers: card.assignedUsers || []
   });
 
   const titleRef = useRef(null);
@@ -32,7 +36,9 @@ const EditableCard = ({ card, columnId, allCards, onSave, onCancel }) => {
         description: editedCard.description.trim(),
         priority: editedCard.priority,
         category: editedCard.category,
-        parentId: isCurrentSubtask ? editedCard.parentId : undefined
+        parentId: isCurrentSubtask ? editedCard.parentId : undefined,
+        labels: editedCard.labels,
+        assignedUsers: editedCard.assignedUsers
       };
       onSave(updatedCard);
     }
@@ -182,6 +188,28 @@ const EditableCard = ({ card, columnId, allCards, onSave, onCancel }) => {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Labels */}
+        <div className="form-group">
+          <LabelSelector
+            availableLabels={allLabels || {}}
+            selectedLabels={editedCard.labels}
+            onLabelsChange={(labels) => setEditedCard(prev => ({ ...prev, labels }))}
+            onManageLabels={onManageLabels}
+          />
+        </div>
+
+        {/* Usuários */}
+        <div className="form-group">
+          <label>Usuários Atribuídos</label>
+          <UserSelector
+            allUsers={allUsers || {}}
+            selectedUserIds={editedCard.assignedUsers}
+            onUsersChange={(userIds) => setEditedCard(prev => ({ ...prev, assignedUsers: userIds }))}
+            placeholder="Atribuir usuários..."
+            isEditing={true}
+          />
         </div>
 
         {/* Botões de ação */}

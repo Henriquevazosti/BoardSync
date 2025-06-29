@@ -3,6 +3,9 @@ import Header from './components/Header/Header';
 import Column from './components/Column/Column';
 import NewCardModal from './components/NewCardModal/NewCardModal';
 import CategoryFilter from './components/CategoryFilter/CategoryFilter';
+import BlockCardModal from './components/BlockCardModal/BlockCardModal';
+import LabelManager from './components/LabelManager/LabelManager';
+import UserManager from './components/UserManager/UserManager';
 import { initialData, getSubtasks, isSubtask } from './data/initialData';
 import './App.css';
 
@@ -11,6 +14,10 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+  const [selectedCardForBlock, setSelectedCardForBlock] = useState(null);
+  const [isLabelManagerOpen, setIsLabelManagerOpen] = useState(false);
+  const [isUserManagerOpen, setIsUserManagerOpen] = useState(false);
 
   const moveCard = (cardId, sourceColumnId, targetColumnId) => {
     if (sourceColumnId === targetColumnId) return;
@@ -100,7 +107,16 @@ function App() {
       description: cardData.description,
       priority: cardData.priority,
       category: cardData.category,
+      labels: cardData.labels || [],
+      assignedUsers: cardData.assignedUsers || [],
+      isBlocked: false,
+      blockReason: ''
     };
+
+    // Adicionar parentId se for subtarefa
+    if (cardData.parentId) {
+      newCard.parentId = cardData.parentId;
+    }
 
     setData(prevData => ({
       ...prevData,
@@ -166,9 +182,108 @@ function App() {
     }));
   };
 
+  const handleBlockCard = (card) => {
+    setSelectedCardForBlock(card);
+    setIsBlockModalOpen(true);
+  };
+
+  const blockCard = (cardId, blockReason) => {
+    setData(prevData => ({
+      ...prevData,
+      cards: {
+        ...prevData.cards,
+        [cardId]: {
+          ...prevData.cards[cardId],
+          isBlocked: true,
+          blockReason: blockReason
+        }
+      }
+    }));
+  };
+
+  const unblockCard = (cardId) => {
+    setData(prevData => ({
+      ...prevData,
+      cards: {
+        ...prevData.cards,
+        [cardId]: {
+          ...prevData.cards[cardId],
+          isBlocked: false,
+          blockReason: ''
+        }
+      }
+    }));
+  };
+
+  const handleManageLabels = () => {
+    setIsLabelManagerOpen(true);
+  };
+
+  const createLabel = (newLabel) => {
+    setData(prevData => ({
+      ...prevData,
+      labels: {
+        ...prevData.labels,
+        [newLabel.id]: newLabel
+      }
+    }));
+  };
+
+  const editLabel = (updatedLabel) => {
+    setData(prevData => ({
+      ...prevData,
+      labels: {
+        ...prevData.labels,
+        [updatedLabel.id]: updatedLabel
+      }
+    }));
+  };
+
+  const deleteLabel = (labelId) => {
+    if (window.confirm('Tem certeza que deseja excluir esta label? Ela será removida de todos os cards.')) {
+      setData(prevData => {
+        // Remover a label
+        const newLabels = { ...prevData.labels };
+        delete newLabels[labelId];
+
+        // Remover a label de todos os cards
+        const newCards = { ...prevData.cards };
+        Object.keys(newCards).forEach(cardId => {
+          if (newCards[cardId].labels) {
+            newCards[cardId] = {
+              ...newCards[cardId],
+              labels: newCards[cardId].labels.filter(id => id !== labelId)
+            };
+          }
+        });
+
+        return {
+          ...prevData,
+          labels: newLabels,
+          cards: newCards
+        };
+      });
+    }
+  };
+
+  // Funções para gerenciar usuários
+  const handleManageUsers = () => {
+    setIsUserManagerOpen(true);
+  };
+
+  const handleUsersChange = (updatedUsers) => {
+    setData(prevData => ({
+      ...prevData,
+      users: updatedUsers
+    }));
+  };
+
   return (
     <div className="app">
-      <Header />
+      <Header 
+        onManageLabels={handleManageLabels}
+        onManageUsers={handleManageUsers}
+      />
       <div className="board">
         <CategoryFilter 
           selectedCategories={selectedCategories}
@@ -188,9 +303,13 @@ function App() {
                 cards={filteredCards}
                 totalCards={allCards.length}
                 allCards={data.cards}
+                allLabels={data.labels}
+                allUsers={data.users}
                 onAddCard={handleAddCard}
                 onMoveCard={moveCard}
                 onEditCard={handleEditCard}
+                onBlockCard={handleBlockCard}
+                onManageLabels={handleManageLabels}
               />
             );
           })}
@@ -205,6 +324,40 @@ function App() {
           onClose={() => setIsModalOpen(false)}
           onCreateCard={handleCreateCard}
           allCards={data.cards}
+          allLabels={data.labels}
+          allUsers={data.users}
+          onManageLabels={handleManageLabels}
+        />
+      )}
+
+      {isBlockModalOpen && selectedCardForBlock && (
+        <BlockCardModal
+          card={selectedCardForBlock}
+          onClose={() => {
+            setIsBlockModalOpen(false);
+            setSelectedCardForBlock(null);
+          }}
+          onBlockCard={blockCard}
+          onUnblockCard={unblockCard}
+        />
+      )}
+
+      {isLabelManagerOpen && (
+        <LabelManager
+          labels={data.labels}
+          onClose={() => setIsLabelManagerOpen(false)}
+          onCreateLabel={createLabel}
+          onEditLabel={editLabel}
+          onDeleteLabel={deleteLabel}
+        />
+      )}
+
+      {isUserManagerOpen && (
+        <UserManager
+          isOpen={isUserManagerOpen}
+          users={data.users}
+          onClose={() => setIsUserManagerOpen(false)}
+          onUsersChange={handleUsersChange}
         />
       )}
     </div>
