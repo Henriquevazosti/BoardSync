@@ -12,7 +12,7 @@ import {
 import EditableCard from '../EditableCard/EditableCard';
 import './Card.css';
 
-const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlockCard, onManageLabels, onViewActivityLog }) => {
+const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlockCard, onManageLabels, onViewActivityLog, onViewComments }) => {
   const [isEditing, setIsEditing] = useState(false);
   const getPriorityClass = (priority) => {
     switch (priority) {
@@ -160,6 +160,17 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlo
             title="Ver histórico de atividades"
           >
             📋
+          </button>
+          <button 
+            className="comments-btn"
+            onClick={() => {
+              console.log('Clicou no botão de comentários, cardId:', card.id);
+              console.log('onViewComments function:', onViewComments);
+              onViewComments(card.id);
+            }}
+            title="Ver comentários"
+          >
+            💬
           </button>
           <div className="drag-handle">⋮⋮</div>
         </div>

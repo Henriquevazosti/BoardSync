@@ -490,3 +490,53 @@
     transform: translateX(2px);
   }
 }
+
+.comments-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card:hover .comments-btn {
+  opacity: 1;
+}
+
+.comments-btn:hover {
+  background: rgba(9, 30, 66, 0.08);
+  transform: scale(1.1);
+}
+
+.activity-btn, .comments-btn, .block-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 1; /* Temporariamente sempre visível para teste */
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card:hover .activity-btn,
+.card:hover .comments-btn,
+.card:hover .block-btn {
+  opacity: 1;
+}
+
+.activity-btn:hover,
+.comments-btn:hover,
+.block-btn:hover {
+  background: rgba(9, 30, 66, 0.08);
+  transform: scale(1.1);
+}

@@ -10,6 +10,7 @@ import LabelManager from './components/LabelManager/LabelManager';
 import UserManager from './components/UserManager/UserManager';
 import ThemeSelector from './components/ThemeSelector/ThemeSelector';
 import ActivityLog from './components/ActivityLog/ActivityLog';
+import CommentsModal from './components/CommentsModal/CommentsModal';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import { 
@@ -44,6 +45,9 @@ function App() {
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [activityLogCardId, setActivityLogCardId] = useState(null);
   const [isFiltersMinimized, setIsFiltersMinimized] = useState(false);
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+  const [selectedCardForComments, setSelectedCardForComments] = useState(null);
+  const [comments, setComments] = useState([]);
 
   // Funções de autenticação
   const handleLogin = (userData) => {
@@ -556,6 +560,75 @@ function App() {
     setIsFiltersMinimized(!isFiltersMinimized);
   };
 
+  // Funções para comentários
+  const handleViewComments = (cardId) => {
+    console.log('handleViewComments chamada com cardId:', cardId);
+    const card = findCardInAllColumns(cardId);
+    console.log('Card encontrado:', card);
+    if (card) {
+      setSelectedCardForComments(card);
+      setIsCommentsModalOpen(true);
+      console.log('Modal de comentários aberto');
+    } else {
+      console.log('Card não encontrado!');
+    }
+  };
+
+  const handleAddComment = (comment) => {
+    setComments(prev => [...prev, comment]);
+    
+    // Adicionar atividade de comentário
+    const activity = createActivity(
+      activityTypes.COMMENT_ADDED,
+      user,
+      { 
+        cardId: comment.cardId,
+        cardTitle: selectedCardForComments?.title || 'Card',
+        commentText: comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text
+      }
+    );
+    setData(prev => ({
+      ...prev,
+      activities: [activity, ...prev.activities]
+    }));
+  };
+
+  const handleDeleteComment = (commentId) => {
+    const comment = comments.find(c => c.id === commentId);
+    if (comment) {
+      setComments(prev => prev.filter(c => c.id !== commentId));
+      
+      // Adicionar atividade de remoção de comentário
+      const activity = createActivity(
+        activityTypes.COMMENT_DELETED,
+        user,
+        { 
+          cardId: comment.cardId,
+          cardTitle: selectedCardForComments?.title || 'Card',
+          commentText: comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text
+        }
+      );
+      setData(prev => ({
+        ...prev,
+        activities: [activity, ...prev.activities]
+      }));
+    }
+  };
+
+  // Função auxiliar para encontrar card em todas as colunas
+  const findCardInAllColumns = (cardId) => {
+    console.log('Procurando card com ID:', cardId);
+    console.log('Dados disponíveis:', data.cards);
+    // Buscar diretamente no objeto de cards
+    const card = data.cards[cardId];
+    if (card) {
+      console.log('Card encontrado:', card);
+      return card;
+    }
+    console.log('Card não encontrado');
+    return null;
+  };
+
   return (
     <div className="app">
       <Header 
@@ -618,6 +691,7 @@ function App() {
                 onBlockCard={handleBlockCard}
                 onManageLabels={handleManageLabels}
                 onViewActivityLog={handleViewActivityLog}
+                onViewComments={handleViewComments}
               />
             );
           })}
@@ -687,6 +761,22 @@ function App() {
           users={data.users}
           cards={data.cards}
           cardId={activityLogCardId}
+        />
+      )}
+
+      {isCommentsModalOpen && selectedCardForComments && (
+        <CommentsModal
+          isOpen={isCommentsModalOpen}
+          onClose={() => {
+            console.log('Fechando modal de comentários');
+            setIsCommentsModalOpen(false);
+            setSelectedCardForComments(null);
+          }}
+          card={selectedCardForComments}
+          comments={comments}
+          currentUser={user}
+          onAddComment={handleAddComment}
+          onDeleteComment={handleDeleteComment}
         />
       )}
     </div>

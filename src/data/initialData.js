@@ -664,5 +664,7 @@ export const activityTypes = {
   TITLE_CHANGED: 'title_changed',
   CATEGORY_CHANGED: 'category_changed',
   COMPLETED: 'completed',
-  REOPENED: 'reopened'
+  REOPENED: 'reopened',
+  COMMENT_ADDED: 'comment_added',
+  COMMENT_DELETED: 'comment_deleted'
 };
