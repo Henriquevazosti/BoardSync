@@ -6,10 +6,17 @@ import CategoryFilter from './components/CategoryFilter/CategoryFilter';
 import BlockCardModal from './components/BlockCardModal/BlockCardModal';
 import LabelManager from './components/LabelManager/LabelManager';
 import UserManager from './components/UserManager/UserManager';
+import Login from './components/Login/Login';
+import Register from './components/Register/Register';
 import { initialData, getSubtasks, isSubtask } from './data/initialData';
 import './App.css';
 
 function App() {
+  // Estados de autenticação
+  const [user, setUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState('login'); // 'login', 'register', 'board'
+  
+  // Estados do board (existentes)
   const [data, setData] = useState(initialData);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(null);
@@ -18,6 +25,58 @@ function App() {
   const [selectedCardForBlock, setSelectedCardForBlock] = useState(null);
   const [isLabelManagerOpen, setIsLabelManagerOpen] = useState(false);
   const [isUserManagerOpen, setIsUserManagerOpen] = useState(false);
+
+  // Funções de autenticação
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setCurrentPage('board');
+  };
+
+  const handleRegister = (userData) => {
+    setUser(userData);
+    setCurrentPage('board');
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setCurrentPage('login');
+    // Reset board state
+    setData(initialData);
+    setIsModalOpen(false);
+    setSelectedColumn(null);
+    setSelectedCategories([]);
+    setIsBlockModalOpen(false);
+    setSelectedCardForBlock(null);
+    setIsLabelManagerOpen(false);
+    setIsUserManagerOpen(false);
+  };
+
+  const goToLogin = () => {
+    setCurrentPage('login');
+  };
+
+  const goToRegister = () => {
+    setCurrentPage('register');
+  };
+
+  // Se não estiver autenticado, mostrar login ou registro
+  if (!user || currentPage !== 'board') {
+    if (currentPage === 'login') {
+      return (
+        <Login 
+          onLogin={handleLogin}
+          onGoToRegister={goToRegister}
+        />
+      );
+    } else if (currentPage === 'register') {
+      return (
+        <Register 
+          onRegister={handleRegister}
+          onGoToLogin={goToLogin}
+        />
+      );
+    }
+  }
 
   const moveCard = (cardId, sourceColumnId, targetColumnId) => {
     if (sourceColumnId === targetColumnId) return;
@@ -281,8 +340,10 @@ function App() {
   return (
     <div className="app">
       <Header 
+        user={user}
         onManageLabels={handleManageLabels}
         onManageUsers={handleManageUsers}
+        onLogout={handleLogout}
       />
       <div className="board">
         <CategoryFilter 

@@ -56,6 +56,42 @@
   transform: translateY(0);
 }
 
+/* User info section */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 16px;
+  padding-left: 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-name {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .header-content {
@@ -71,5 +107,23 @@
   .header-btn {
     font-size: 12px;
     padding: 6px 10px;
+  }
+  
+  .user-info {
+    margin-left: 8px;
+    padding-left: 8px;
+  }
+  
+  .user-name {
+    font-size: 12px;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .logout-btn {
+    padding: 4px 8px;
+    font-size: 11px;
   }
 }

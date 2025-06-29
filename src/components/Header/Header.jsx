@@ -1,7 +1,7 @@
 import React from 'react';
 import './Header.css';
 
-const Header = ({ onManageLabels, onManageUsers }) => {
+const Header = ({ user, onManageLabels, onManageUsers, onLogout }) => {
   return (
     <header className="header">
       <div className="header-content">
@@ -21,6 +21,17 @@ const Header = ({ onManageLabels, onManageUsers }) => {
           >
             👥 Usuários
           </button>
+          
+          <div className="user-info">
+            <span className="user-name">Olá, {user?.name || user?.firstName || 'Usuário'}</span>
+            <button 
+              className="logout-btn"
+              onClick={onLogout}
+              title="Sair"
+            >
+              🚪 Sair
+            </button>
+          </div>
         </div>
       </div>
     </header>
