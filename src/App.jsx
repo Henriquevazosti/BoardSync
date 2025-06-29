@@ -9,6 +9,7 @@ import BlockCardModal from './components/BlockCardModal/BlockCardModal';
 import LabelManager from './components/LabelManager/LabelManager';
 import UserManager from './components/UserManager/UserManager';
 import ThemeSelector from './components/ThemeSelector/ThemeSelector';
+import ActivityLog from './components/ActivityLog/ActivityLog';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import { 
@@ -17,7 +18,9 @@ import {
   isSubtask, 
   isOverdue, 
   isDueToday, 
-  isDueSoon 
+  isDueSoon,
+  createActivity,
+  activityTypes
 } from './data/initialData';
 import './styles/themes.css';
 import './App.css';
@@ -38,6 +41,8 @@ function App() {
   const [isLabelManagerOpen, setIsLabelManagerOpen] = useState(false);
   const [isUserManagerOpen, setIsUserManagerOpen] = useState(false);
   const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false);
+  const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
+  const [activityLogCardId, setActivityLogCardId] = useState(null);
 
   // Funções de autenticação
   const handleLogin = (userData) => {
@@ -63,6 +68,8 @@ function App() {
     setIsLabelManagerOpen(false);
     setIsUserManagerOpen(false);
     setIsThemeSelectorOpen(false);
+    setIsActivityLogOpen(false);
+    setActivityLogCardId(null);
   };
 
   const goToLogin = () => {
@@ -91,6 +98,21 @@ function App() {
       );
     }
   }
+
+  // Função para adicionar atividade
+  const addActivity = (cardId, type, description, oldValue = null, newValue = null) => {
+    if (!user || !user.id) return;
+    
+    const activity = createActivity(cardId, user.id, type, description, oldValue, newValue);
+    
+    setData(prevData => ({
+      ...prevData,
+      activities: {
+        ...prevData.activities,
+        [activity.id]: activity
+      }
+    }));
+  };
 
   const moveCard = (cardId, sourceColumnId, targetColumnId) => {
     if (sourceColumnId === targetColumnId) return;
@@ -165,6 +187,17 @@ function App() {
         columns: updatedColumns
       };
     });
+
+    // Registrar atividade de movimentação
+    const sourceColumn = data.columns[sourceColumnId];
+    const targetColumn = data.columns[targetColumnId];
+    addActivity(
+      cardId, 
+      activityTypes.CARD_MOVED, 
+      `Card movido de "${sourceColumn.title}" para "${targetColumn.title}"`,
+      { column: sourceColumn.title },
+      { column: targetColumn.title }
+    );
   };
 
   const handleAddCard = (columnId) => {
@@ -211,9 +244,99 @@ function App() {
 
     setIsModalOpen(false);
     setSelectedColumn(null);
+
+    // Registrar atividade de criação
+    addActivity(newCardId, activityTypes.CARD_CREATED, 'Card criado');
   };
 
   const handleEditCard = (updatedCard) => {
+    const originalCard = data.cards[updatedCard.id];
+    
+    // Detectar mudanças específicas e registrar atividades
+    if (originalCard.title !== updatedCard.title) {
+      addActivity(
+        updatedCard.id, 
+        activityTypes.TITLE_CHANGED, 
+        'Título alterado',
+        originalCard.title,
+        updatedCard.title
+      );
+    }
+    
+    if (originalCard.description !== updatedCard.description) {
+      addActivity(
+        updatedCard.id, 
+        activityTypes.DESCRIPTION_CHANGED, 
+        'Descrição atualizada'
+      );
+    }
+    
+    if (originalCard.priority !== updatedCard.priority) {
+      addActivity(
+        updatedCard.id, 
+        activityTypes.PRIORITY_CHANGED, 
+        'Prioridade alterada',
+        originalCard.priority,
+        updatedCard.priority
+      );
+    }
+    
+    if (originalCard.category !== updatedCard.category) {
+      addActivity(
+        updatedCard.id, 
+        activityTypes.CATEGORY_CHANGED, 
+        'Categoria alterada',
+        originalCard.category,
+        updatedCard.category
+      );
+    }
+    
+    if (originalCard.dueDate !== updatedCard.dueDate) {
+      addActivity(
+        updatedCard.id, 
+        activityTypes.DUE_DATE_CHANGED, 
+        'Data de vencimento alterada',
+        originalCard.dueDate,
+        updatedCard.dueDate
+      );
+    }
+    
+    // Verificar mudanças em labels
+    const originalLabels = originalCard.labels || [];
+    const newLabels = updatedCard.labels || [];
+    if (JSON.stringify(originalLabels.sort()) !== JSON.stringify(newLabels.sort())) {
+      addActivity(
+        updatedCard.id, 
+        activityTypes.LABELS_CHANGED, 
+        'Labels atualizadas'
+      );
+    }
+    
+    // Verificar mudanças em usuários atribuídos
+    const originalUsers = originalCard.assignedUsers || [];
+    const newUsers = updatedCard.assignedUsers || [];
+    if (JSON.stringify(originalUsers.sort()) !== JSON.stringify(newUsers.sort())) {
+      if (newUsers.length > originalUsers.length) {
+        addActivity(
+          updatedCard.id, 
+          activityTypes.USERS_ASSIGNED, 
+          'Usuários atribuídos'
+        );
+      } else if (newUsers.length < originalUsers.length) {
+        addActivity(
+          updatedCard.id, 
+          activityTypes.USERS_UNASSIGNED, 
+          'Usuários removidos'
+        );
+      } else {
+        addActivity(
+          updatedCard.id, 
+          activityTypes.USERS_ASSIGNED, 
+          'Atribuição de usuários alterada'
+        );
+      }
+    }
+    
     setData(prevData => ({
       ...prevData,
       cards: {
@@ -326,6 +449,9 @@ function App() {
         }
       }
     }));
+
+    // Registrar atividade de bloqueio
+    addActivity(cardId, activityTypes.CARD_BLOCKED, `Card bloqueado: ${blockReason}`);
   };
 
   const unblockCard = (cardId) => {
@@ -340,6 +466,9 @@ function App() {
         }
       }
     }));
+
+    // Registrar atividade de desbloqueio
+    addActivity(cardId, activityTypes.CARD_UNBLOCKED, 'Card desbloqueado');
   };
 
   const handleManageLabels = () => {
@@ -410,6 +539,17 @@ function App() {
     setIsThemeSelectorOpen(true);
   };
 
+  // Funções para histórico de atividades
+  const handleViewActivityLog = (cardId = null) => {
+    setActivityLogCardId(cardId);
+    setIsActivityLogOpen(true);
+  };
+
+  const handleViewAllActivities = () => {
+    setActivityLogCardId(null);
+    setIsActivityLogOpen(true);
+  };
+
   return (
     <div className="app">
       <Header 
@@ -417,6 +557,7 @@ function App() {
         onManageLabels={handleManageLabels}
         onManageUsers={handleManageUsers}
         onManageThemes={handleManageThemes}
+        onViewActivities={handleViewAllActivities}
         onLogout={handleLogout}
       />
       <div className="board">
@@ -454,6 +595,7 @@ function App() {
                 onEditCard={handleEditCard}
                 onBlockCard={handleBlockCard}
                 onManageLabels={handleManageLabels}
+                onViewActivityLog={handleViewActivityLog}
               />
             );
           })}
@@ -509,6 +651,20 @@ function App() {
         <ThemeSelector
           isOpen={isThemeSelectorOpen}
           onClose={() => setIsThemeSelectorOpen(false)}
+        />
+      )}
+
+      {isActivityLogOpen && (
+        <ActivityLog
+          isOpen={isActivityLogOpen}
+          onClose={() => {
+            setIsActivityLogOpen(false);
+            setActivityLogCardId(null);
+          }}
+          activities={data.activities}
+          users={data.users}
+          cards={data.cards}
+          cardId={activityLogCardId}
         />
       )}
     </div>

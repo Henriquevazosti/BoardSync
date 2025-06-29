@@ -41,6 +41,65 @@ export const initialData = {
       bgColor: '#e6fcff'
     }
   },
+  activities: {
+    'activity-1': {
+      id: 'activity-1',
+      cardId: 'card-1',
+      userId: 'user-1',
+      type: 'card_created',
+      description: 'Card criado',
+      timestamp: '2025-06-20T10:00:00.000Z',
+      oldValue: null,
+      newValue: {
+        title: 'Configurar ambiente de desenvolvimento',
+        priority: 'alta',
+        category: 'historia'
+      }
+    },
+    'activity-2': {
+      id: 'activity-2',
+      cardId: 'card-1',
+      userId: 'user-2',
+      type: 'users_assigned',
+      description: 'Usuários atribuídos',
+      timestamp: '2025-06-20T10:15:00.000Z',
+      oldValue: ['user-1'],
+      newValue: ['user-1', 'user-2']
+    },
+    'activity-3': {
+      id: 'activity-3',
+      cardId: 'card-2',
+      userId: 'user-3',
+      type: 'card_blocked',
+      description: 'Card bloqueado',
+      timestamp: '2025-06-18T15:00:00.000Z',
+      oldValue: { isBlocked: false },
+      newValue: { 
+        isBlocked: true, 
+        blockReason: 'Aguardando definição dos requisitos de segurança pela equipe de compliance' 
+      }
+    },
+    'activity-4': {
+      id: 'activity-4',
+      cardId: 'card-3',
+      userId: 'user-1',
+      type: 'card_moved',
+      description: 'Card movido',
+      timestamp: '2025-06-22T11:30:00.000Z',
+      oldValue: { column: 'todo' },
+      newValue: { column: 'in-progress' }
+    },
+    'activity-5': {
+      id: 'activity-5',
+      cardId: 'card-4',
+      userId: 'user-4',
+      type: 'priority_changed',
+      description: 'Prioridade alterada',
+      timestamp: '2025-06-25T17:00:00.000Z',
+      oldValue: 'media',
+      newValue: 'alta'
+    }
+  },
   labels: {
     'label-1': {
       id: 'label-1',
@@ -455,4 +514,155 @@ export const getCardsDueToday = (cards) => {
 
 export const getCardsDueSoon = (cards) => {
   return Object.values(cards).filter(card => isDueSoon(card.dueDate));
+};
+
+// Funções utilitárias para atividades/histórico
+export const generateActivityId = () => {
+  return `activity-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
+export const createActivity = (cardId, userId, type, description, oldValue = null, newValue = null) => {
+  return {
+    id: generateActivityId(),
+    cardId,
+    userId,
+    type,
+    description,
+    timestamp: new Date().toISOString(),
+    oldValue,
+    newValue
+  };
+};
+
+export const getCardActivities = (cardId, activities) => {
+  return Object.values(activities)
+    .filter(activity => activity.cardId === cardId)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+};
+
+export const getAllActivities = (activities) => {
+  return Object.values(activities)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+};
+
+export const getRecentActivities = (activities, limit = 10) => {
+  return getAllActivities(activities).slice(0, limit);
+};
+
+export const getUserActivities = (userId, activities) => {
+  return Object.values(activities)
+    .filter(activity => activity.userId === userId)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+};
+
+export const formatActivityTimestamp = (timestamp) => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMinutes < 1) return 'Agora mesmo';
+  if (diffMinutes < 60) return `${diffMinutes} min atrás`;
+  if (diffHours < 24) return `${diffHours}h atrás`;
+  if (diffDays < 7) return `${diffDays} dias atrás`;
+  
+  return date.toLocaleDateString('pt-BR', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+export const getActivityIcon = (type) => {
+  const icons = {
+    card_created: '✨',
+    card_updated: '✏️',
+    card_moved: '🔄',
+    card_deleted: '🗑️',
+    card_blocked: '🚫',
+    card_unblocked: '🔓',
+    priority_changed: '⭐',
+    due_date_changed: '📅',
+    labels_changed: '🏷️',
+    users_assigned: '👥',
+    users_unassigned: '👤',
+    description_changed: '📝',
+    title_changed: '📋',
+    category_changed: '📂',
+    completed: '✅',
+    reopened: '🔄'
+  };
+  return icons[type] || '📌';
+};
+
+export const getActivityDescription = (activity, users, cards) => {
+  const user = users[activity.userId];
+  const userName = user ? user.name : 'Usuário desconhecido';
+  
+  switch (activity.type) {
+    case 'card_created':
+      return `${userName} criou o card`;
+    case 'card_updated':
+      return `${userName} atualizou o card`;
+    case 'card_moved':
+      const fromColumn = activity.oldValue?.column || 'desconhecida';
+      const toColumn = activity.newValue?.column || 'desconhecida';
+      return `${userName} moveu o card de "${fromColumn}" para "${toColumn}"`;
+    case 'card_blocked':
+      return `${userName} bloqueou o card`;
+    case 'card_unblocked':
+      return `${userName} desbloqueou o card`;
+    case 'priority_changed':
+      return `${userName} alterou a prioridade de "${activity.oldValue}" para "${activity.newValue}"`;
+    case 'due_date_changed':
+      if (!activity.oldValue && activity.newValue) {
+        return `${userName} definiu data de vencimento`;
+      } else if (activity.oldValue && !activity.newValue) {
+        return `${userName} removeu a data de vencimento`;
+      } else {
+        return `${userName} alterou a data de vencimento`;
+      }
+    case 'labels_changed':
+      return `${userName} atualizou as labels`;
+    case 'users_assigned':
+      return `${userName} atribuiu usuários ao card`;
+    case 'users_unassigned':
+      return `${userName} removeu usuários do card`;
+    case 'description_changed':
+      return `${userName} atualizou a descrição`;
+    case 'title_changed':
+      return `${userName} alterou o título`;
+    case 'category_changed':
+      return `${userName} alterou a categoria`;
+    case 'completed':
+      return `${userName} marcou o card como concluído`;
+    case 'reopened':
+      return `${userName} reabriu o card`;
+    default:
+      return `${userName} ${activity.description}`;
+  }
+};
+
+// Tipos de atividades disponíveis
+export const activityTypes = {
+  CARD_CREATED: 'card_created',
+  CARD_UPDATED: 'card_updated',
+  CARD_MOVED: 'card_moved',
+  CARD_DELETED: 'card_deleted',
+  CARD_BLOCKED: 'card_blocked',
+  CARD_UNBLOCKED: 'card_unblocked',
+  PRIORITY_CHANGED: 'priority_changed',
+  DUE_DATE_CHANGED: 'due_date_changed',
+  LABELS_CHANGED: 'labels_changed',
+  USERS_ASSIGNED: 'users_assigned',
+  USERS_UNASSIGNED: 'users_unassigned',
+  DESCRIPTION_CHANGED: 'description_changed',
+  TITLE_CHANGED: 'title_changed',
+  CATEGORY_CHANGED: 'category_changed',
+  COMPLETED: 'completed',
+  REOPENED: 'reopened'
 };

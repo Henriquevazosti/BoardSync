@@ -12,7 +12,7 @@ import {
 import EditableCard from '../EditableCard/EditableCard';
 import './Card.css';
 
-const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlockCard, onManageLabels }) => {
+const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlockCard, onManageLabels, onViewActivityLog }) => {
   const [isEditing, setIsEditing] = useState(false);
   const getPriorityClass = (priority) => {
     switch (priority) {
@@ -153,6 +153,13 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlo
             title={card.isBlocked ? 'Gerenciar bloqueio' : 'Bloquear card'}
           >
             {card.isBlocked ? '🔓' : '🚫'}
+          </button>
+          <button 
+            className="activity-btn"
+            onClick={() => onViewActivityLog(card.id)}
+            title="Ver histórico de atividades"
+          >
+            📋
           </button>
           <div className="drag-handle">⋮⋮</div>
         </div>

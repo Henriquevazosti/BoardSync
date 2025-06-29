@@ -2,7 +2,7 @@ import React from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import './Header.css';
 
-const Header = ({ user, onManageLabels, onManageUsers, onManageThemes, onLogout }) => {
+const Header = ({ user, onManageLabels, onManageUsers, onManageThemes, onViewActivities, onLogout }) => {
   return (
     <header className="header">
       <div className="header-content">
@@ -28,6 +28,13 @@ const Header = ({ user, onManageLabels, onManageUsers, onManageThemes, onLogout 
             title="Personalizar Visual"
           >
             🎨 Temas
+          </button>
+          <button 
+            className="header-btn"
+            onClick={onViewActivities}
+            title="Histórico de Atividades"
+          >
+            📋 Histórico
           </button>
           
           <div className="user-info">
