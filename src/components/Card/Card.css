@@ -1,19 +1,21 @@
 .card {
-  background: white;
-  border-radius: 3px;
-  padding: 8px;
-  margin-bottom: 8px;
-  box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
+  background: var(--color-cardBackground);
+  border-radius: var(--border-radius-base);
+  padding: calc(8px * var(--spacing-compact));
+  margin-bottom: calc(8px * var(--spacing-compact));
+  box-shadow: 0 1px 0 var(--color-shadow);
   cursor: grab;
-  transition: all 0.2s ease;
+  transition: all var(--animation-duration) ease;
   border-left: 4px solid transparent;
   user-select: none;
   position: relative;
+  border: 1px solid var(--color-border);
 }
 
 .card:hover {
-  box-shadow: 0 2px 4px rgba(9, 30, 66, 0.15);
+  box-shadow: 0 2px 4px var(--color-shadowHover);
   transform: translateY(-1px);
+  border-color: var(--color-borderDark);
 }
 
 .card:active {

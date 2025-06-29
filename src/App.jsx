@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/Header/Header';
 import Column from './components/Column/Column';
 import NewCardModal from './components/NewCardModal/NewCardModal';
@@ -6,9 +7,11 @@ import CategoryFilter from './components/CategoryFilter/CategoryFilter';
 import BlockCardModal from './components/BlockCardModal/BlockCardModal';
 import LabelManager from './components/LabelManager/LabelManager';
 import UserManager from './components/UserManager/UserManager';
+import ThemeSelector from './components/ThemeSelector/ThemeSelector';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import { initialData, getSubtasks, isSubtask } from './data/initialData';
+import './styles/themes.css';
 import './App.css';
 
 function App() {
@@ -25,6 +28,7 @@ function App() {
   const [selectedCardForBlock, setSelectedCardForBlock] = useState(null);
   const [isLabelManagerOpen, setIsLabelManagerOpen] = useState(false);
   const [isUserManagerOpen, setIsUserManagerOpen] = useState(false);
+  const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false);
 
   // Funções de autenticação
   const handleLogin = (userData) => {
@@ -49,6 +53,7 @@ function App() {
     setSelectedCardForBlock(null);
     setIsLabelManagerOpen(false);
     setIsUserManagerOpen(false);
+    setIsThemeSelectorOpen(false);
   };
 
   const goToLogin = () => {
@@ -337,12 +342,18 @@ function App() {
     }));
   };
 
+  // Funções de gerenciamento de temas
+  const handleManageThemes = () => {
+    setIsThemeSelectorOpen(true);
+  };
+
   return (
     <div className="app">
       <Header 
         user={user}
         onManageLabels={handleManageLabels}
         onManageUsers={handleManageUsers}
+        onManageThemes={handleManageThemes}
         onLogout={handleLogout}
       />
       <div className="board">
@@ -421,8 +432,23 @@ function App() {
           onUsersChange={handleUsersChange}
         />
       )}
+
+      {isThemeSelectorOpen && (
+        <ThemeSelector
+          isOpen={isThemeSelectorOpen}
+          onClose={() => setIsThemeSelectorOpen(false)}
+        />
+      )}
     </div>
   );
 }
 
-export default App;
+const AppWithTheme = () => {
+  return (
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  );
+};
+
+export default AppWithTheme;

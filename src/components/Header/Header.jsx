@@ -1,7 +1,8 @@
 import React from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import './Header.css';
 
-const Header = ({ user, onManageLabels, onManageUsers, onLogout }) => {
+const Header = ({ user, onManageLabels, onManageUsers, onManageThemes, onLogout }) => {
   return (
     <header className="header">
       <div className="header-content">
@@ -20,6 +21,13 @@ const Header = ({ user, onManageLabels, onManageUsers, onLogout }) => {
             title="Gerenciar Usuários"
           >
             👥 Usuários
+          </button>
+          <button 
+            className="header-btn"
+            onClick={onManageThemes}
+            title="Personalizar Visual"
+          >
+            🎨 Temas
           </button>
           
           <div className="user-info">

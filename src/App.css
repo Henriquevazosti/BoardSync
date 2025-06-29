@@ -1,10 +1,12 @@
 .app {
   min-height: 100vh;
-  background: #eff0ef;
+  background: var(--color-background);
+  color: var(--color-textPrimary);
+  transition: background-color var(--animation-duration) ease, color var(--animation-duration) ease;
 }
 
 .board {
-  padding: 8px;
+  padding: calc(8px * var(--spacing-compact));
   height: calc(100vh - 48px);
   overflow-x: auto;
   overflow-y: hidden;
@@ -18,10 +20,10 @@
 }
 
 .add-list-button {
-  background: rgba(255, 255, 255, 0.24);
-  border: none;
-  border-radius: 3px;
-  color: white;
+  background: var(--color-columnBackground);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-base);
+  color: var(--color-textSecondary);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -29,12 +31,14 @@
   min-width: 272px;
   padding: 12px;
   text-align: left;
-  transition: background-color 0.2s ease;
+  transition: all var(--animation-duration) ease;
   white-space: nowrap;
 }
 
 .add-list-button:hover {
-  background: rgba(255, 255, 255, 0.32);
+  background: var(--color-cardBackground);
+  border-color: var(--color-primary);
+  color: var(--color-textPrimary);
 }
 
 /* Scrollbar personalizada para o board */
