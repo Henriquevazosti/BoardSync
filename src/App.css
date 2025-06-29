@@ -1,62 +1,61 @@
-.App {
+.app {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #0079bf;
+  background: var(--color-background);
+  color: var(--color-textPrimary);
+  transition: background-color var(--animation-duration) ease, color var(--animation-duration) ease;
 }
 
-.main-content {
-  flex: 1;
-  padding: 20px;
+.board {
+  padding: calc(8px * var(--spacing-compact));
+  height: calc(100vh - 48px);
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
-.board-container {
+.board-content {
   display: flex;
-  gap: 16px;
-  min-height: calc(100vh - 100px);
-  padding: 0;
   align-items: flex-start;
-  justify-content: flex-start;
-}
-
-/* Responsividade */
-@media (max-width: 1200px) {
-  .board-container {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: 768px) {
-  .board-container {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .main-content {
-    padding: 10px;
-  }
-}
-
-.add-list-container {
-  min-width: 272px;
-  max-width: 272px;
+  min-height: 100%;
+  padding-bottom: 8px;
 }
 
 .add-list-button {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.24);
-  border: none;
-  color: #ffffff;
-  padding: 12px;
-  border-radius: 3px;
+  background: var(--color-columnBackground);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-base);
+  color: var(--color-textSecondary);
   cursor: pointer;
   font-size: 14px;
-  font-weight: 400;
-  transition: all 0.1s ease;
+  font-weight: 500;
+  margin: 0 4px;
+  min-width: 272px;
+  padding: 12px;
   text-align: left;
+  transition: all var(--animation-duration) ease;
+  white-space: nowrap;
 }
 
 .add-list-button:hover {
-  background: rgba(255, 255, 255, 0.32);
+  background: var(--color-cardBackground);
+  border-color: var(--color-primary);
+  color: var(--color-textPrimary);
+}
+
+/* Scrollbar personalizada para o board */
+.board::-webkit-scrollbar {
+  height: 12px;
+}
+
+.board::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.board::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+}
+
+.board::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }

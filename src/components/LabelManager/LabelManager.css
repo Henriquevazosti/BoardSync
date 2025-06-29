@@ -1,0 +1,265 @@
+.label-manager {
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #172b4d;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.labels-list {
+  margin-bottom: 20px;
+}
+
+.labels-list h3 {
+  margin: 0 0 12px 0;
+  color: #172b4d;
+  font-size: 16px;
+}
+
+.no-labels {
+  color: #5e6c84;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+  background: #f4f5f7;
+  border-radius: 6px;
+}
+
+.existing-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.label-preview {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid currentColor;
+  min-width: 60px;
+  text-align: center;
+}
+
+.label-preview.large {
+  font-size: 14px;
+  padding: 6px 12px;
+  min-width: 100px;
+}
+
+.label-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.edit-label-btn,
+.delete-label-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.edit-label-btn:hover {
+  background: #e4e6ea;
+}
+
+.delete-label-btn:hover {
+  background: #ffebe6;
+}
+
+.label-form {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 20px;
+}
+
+.label-form h3 {
+  margin: 0 0 16px 0;
+  color: #172b4d;
+  font-size: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #172b4d;
+  font-size: 14px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #0052cc;
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+.color-selector {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.color-option {
+  width: 40px;
+  height: 40px;
+  border: 2px solid;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.color-option.selected {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.3);
+}
+
+.label-preview-section {
+  margin-bottom: 16px;
+}
+
+.label-preview-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #172b4d;
+  font-size: 14px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  background: #f4f5f7;
+  color: #5e6c84;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: #e4e6ea;
+}
+
+.btn-save {
+  background: #0052cc;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+  background: #0065ff;
+  transform: translateY(-1px);
+}
+
+.add-label-section {
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-add-label {
+  background: #00875a;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-add-label:hover {
+  background: #006644;
+  transform: translateY(-1px);
+}
