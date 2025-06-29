@@ -11,6 +11,7 @@ import UserManager from './components/UserManager/UserManager';
 import ThemeSelector from './components/ThemeSelector/ThemeSelector';
 import ActivityLog from './components/ActivityLog/ActivityLog';
 import CommentsModal from './components/CommentsModal/CommentsModal';
+import CardDetailView from './components/CardDetailView/CardDetailView';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import { 
@@ -48,6 +49,8 @@ function App() {
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
   const [selectedCardForComments, setSelectedCardForComments] = useState(null);
   const [comments, setComments] = useState([]);
+  const [isCardDetailOpen, setIsCardDetailOpen] = useState(false);
+  const [selectedCardForDetail, setSelectedCardForDetail] = useState(null);
 
   // Funções de autenticação
   const handleLogin = (userData) => {
@@ -252,6 +255,18 @@ function App() {
 
     // Registrar atividade de criação
     addActivity(newCardId, activityTypes.CARD_CREATED, 'Card criado');
+  };
+
+  // Função para abrir visualização detalhada do card
+  const handleOpenCardDetail = (card) => {
+    setSelectedCardForDetail(card);
+    setIsCardDetailOpen(true);
+  };
+
+  // Função para fechar visualização detalhada do card
+  const handleCloseCardDetail = () => {
+    setIsCardDetailOpen(false);
+    setSelectedCardForDetail(null);
   };
 
   const handleEditCard = (updatedCard) => {
@@ -687,7 +702,7 @@ function App() {
                 allUsers={data.users}
                 onAddCard={handleAddCard}
                 onMoveCard={moveCard}
-                onEditCard={handleEditCard}
+                onOpenCardDetail={handleOpenCardDetail}
                 onBlockCard={handleBlockCard}
                 onManageLabels={handleManageLabels}
                 onViewActivityLog={handleViewActivityLog}
@@ -777,6 +792,23 @@ function App() {
           currentUser={user}
           onAddComment={handleAddComment}
           onDeleteComment={handleDeleteComment}
+        />
+      )}
+
+      {isCardDetailOpen && selectedCardForDetail && (
+        <CardDetailView
+          card={selectedCardForDetail}
+          allCards={data.cards}
+          allLabels={data.labels}
+          allUsers={data.users}
+          comments={comments}
+          currentUser={user}
+          onSave={handleEditCard}
+          onClose={handleCloseCardDetail}
+          onAddComment={handleAddComment}
+          onDeleteComment={handleDeleteComment}
+          onViewActivityLog={handleViewActivityLog}
+          onManageLabels={handleManageLabels}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   categoryConfig, 
   isSubtask, 
@@ -9,11 +9,9 @@ import {
   formatDate,
   getDueDateStatus
 } from '../../data/initialData';
-import EditableCard from '../EditableCard/EditableCard';
 import './Card.css';
 
-const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlockCard, onManageLabels, onViewActivityLog, onViewComments }) => {
-  const [isEditing, setIsEditing] = useState(false);
+const Card = ({ card, columnId, allCards, allLabels, allUsers, onOpenCardDetail, onBlockCard, onManageLabels, onViewActivityLog, onViewComments }) => {
   const getPriorityClass = (priority) => {
     switch (priority) {
       case 'alta': return 'priority-high';
@@ -74,33 +72,8 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onEditCard, onBlo
   };
 
   const handleEdit = () => {
-    setIsEditing(true);
+    onOpenCardDetail(card);
   };
-
-  const handleSave = (updatedCard) => {
-    onEditCard(updatedCard);
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-  };
-
-  // Se está em modo de edição, mostrar o componente EditableCard
-  if (isEditing) {
-    return (
-      <EditableCard
-        card={card}
-        columnId={columnId}
-        allCards={allCards}
-        allLabels={allLabels}
-        allUsers={allUsers}
-        onSave={handleSave}
-        onCancel={handleCancel}
-        onManageLabels={onManageLabels}
-      />
-    );
-  }
 
   const categoryInfo = getCategoryInfo(card.category);
 
