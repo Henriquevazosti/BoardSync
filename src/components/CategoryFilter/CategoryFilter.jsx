@@ -1,8 +1,27 @@
 import React from 'react';
-import { categoryConfig } from '../../data/initialData';
+import { categoryConfig, getMainCategories, getSubtaskCategories } from '../../data/initialData';
 import './CategoryFilter.css';
 
 const CategoryFilter = ({ selectedCategories, onCategoryToggle, onClearAll }) => {
+  const mainCategories = getMainCategories();
+  const subtaskCategories = getSubtaskCategories();
+
+  const renderCategoryButton = (key, config) => (
+    <button
+      key={key}
+      className={`category-filter-btn ${selectedCategories.includes(key) ? 'active' : ''}`}
+      onClick={() => onCategoryToggle(key)}
+      style={{
+        backgroundColor: selectedCategories.includes(key) ? config.color : 'transparent',
+        color: selectedCategories.includes(key) ? 'white' : config.color,
+        borderColor: config.color
+      }}
+    >
+      <span className="filter-icon">{config.icon}</span>
+      <span className="filter-name">{config.name}</span>
+    </button>
+  );
+
   return (
     <div className="category-filter">
       <div className="filter-header">
@@ -12,22 +31,20 @@ const CategoryFilter = ({ selectedCategories, onCategoryToggle, onClearAll }) =>
         </button>
       </div>
       
-      <div className="category-buttons">
-        {Object.entries(categoryConfig).map(([key, config]) => (
-          <button
-            key={key}
-            className={`category-filter-btn ${selectedCategories.includes(key) ? 'active' : ''}`}
-            onClick={() => onCategoryToggle(key)}
-            style={{
-              backgroundColor: selectedCategories.includes(key) ? config.color : 'transparent',
-              color: selectedCategories.includes(key) ? 'white' : config.color,
-              borderColor: config.color
-            }}
-          >
-            <span className="filter-icon">{config.icon}</span>
-            <span className="filter-name">{config.name}</span>
-          </button>
-        ))}
+      <div className="filter-section">
+        <div className="filter-subsection">
+          <span className="subsection-title">Tarefas Principais:</span>
+          <div className="category-buttons">
+            {mainCategories.map((key) => renderCategoryButton(key, categoryConfig[key]))}
+          </div>
+        </div>
+        
+        <div className="filter-subsection">
+          <span className="subsection-title">Subtarefas:</span>
+          <div className="category-buttons">
+            {subtaskCategories.map((key) => renderCategoryButton(key, categoryConfig[key]))}
+          </div>
+        </div>
       </div>
     </div>
   );

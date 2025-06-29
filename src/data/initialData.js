@@ -55,6 +55,30 @@ export const initialData = {
       description: 'Implementar notificações em tempo real para mudanças no board',
       priority: 'baixa',
       category: 'epico'
+    },
+    'card-9': {
+      id: 'card-9',
+      title: 'Teste de integração da API',
+      description: 'Criar testes para validar integração com sistema de notificações',
+      priority: 'media',
+      category: 'sub-teste',
+      parentId: 'card-8'
+    },
+    'card-10': {
+      id: 'card-10',
+      title: 'Corrigir bug de conexão WebSocket',
+      description: 'WebSocket não reconecta automaticamente após perda de conexão',
+      priority: 'alta',
+      category: 'sub-bug',
+      parentId: 'card-8'
+    },
+    'card-11': {
+      id: 'card-11',
+      title: 'Documentar endpoints de notificação',
+      description: 'Criar documentação detalhada dos novos endpoints',
+      priority: 'baixa',
+      category: 'atividade-complementar',
+      parentId: 'card-8'
     }
   },
   columns: {
@@ -76,7 +100,7 @@ export const initialData = {
     'column-4': {
       id: 'column-4',
       title: 'Concluído',
-      cardIds: ['card-6', 'card-8']
+      cardIds: ['card-6', 'card-8', 'card-9', 'card-10', 'card-11']
     }
   },
   columnOrder: ['column-1', 'column-2', 'column-3', 'column-4']
@@ -107,5 +131,49 @@ export const categoryConfig = {
     icon: '⚡',
     color: '#00875a',
     bgColor: '#e3fcef'
+  },
+  // Subcategorias
+  'sub-teste': {
+    name: 'Sub Teste',
+    icon: '🧪',
+    color: '#0065ff',
+    bgColor: '#e6f4ff',
+    isSubtask: true
+  },
+  'sub-bug': {
+    name: 'Sub Bug',
+    icon: '🔧',
+    color: '#ff5630',
+    bgColor: '#ffebe6',
+    isSubtask: true
+  },
+  'atividade-complementar': {
+    name: 'Atividade Complementar',
+    icon: '🔗',
+    color: '#00b8d9',
+    bgColor: '#e6fcff',
+    isSubtask: true
   }
+};
+
+// Funções utilitárias para subtarefas
+export const getSubtaskCategories = () => {
+  return Object.keys(categoryConfig).filter(key => categoryConfig[key].isSubtask);
+};
+
+export const getMainCategories = () => {
+  return Object.keys(categoryConfig).filter(key => !categoryConfig[key].isSubtask);
+};
+
+export const isSubtask = (category) => {
+  return categoryConfig[category]?.isSubtask || false;
+};
+
+export const getParentCard = (cardId, cards) => {
+  const card = cards[cardId];
+  return card?.parentId ? cards[card.parentId] : null;
+};
+
+export const getSubtasks = (parentCardId, cards) => {
+  return Object.values(cards).filter(card => card.parentId === parentCardId);
 };

@@ -79,3 +79,30 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.subsection-title {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.filter-subsection .category-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}

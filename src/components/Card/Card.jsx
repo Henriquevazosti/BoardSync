@@ -1,8 +1,8 @@
 import React from 'react';
-import { categoryConfig } from '../../data/initialData';
+import { categoryConfig, isSubtask, getParentCard, getSubtasks } from '../../data/initialData';
 import './Card.css';
 
-const Card = ({ card, columnId }) => {
+const Card = ({ card, columnId, allCards }) => {
   const getPriorityClass = (priority) => {
     switch (priority) {
       case 'alta': return 'priority-high';
@@ -16,6 +16,21 @@ const Card = ({ card, columnId }) => {
     return categoryConfig[category] || categoryConfig.atividade;
   };
 
+  const isCardSubtask = isSubtask(card.category);
+  const parentCard = isCardSubtask ? getParentCard(card.id, allCards) : null;
+  const subtasks = !isCardSubtask ? getSubtasks(card.id, allCards) : [];
+  const hasSubtasks = subtasks.length > 0;
+
+  const getDragTitle = () => {
+    if (isCardSubtask && parentCard) {
+      return `Arraste "${card.title}" (moverá também "${parentCard.title}" e todas suas subtarefas)`;
+    } else if (hasSubtasks) {
+      return `Arraste "${card.title}" (moverá junto ${subtasks.length} subtarefa${subtasks.length > 1 ? 's' : ''})`;
+    } else {
+      return `Arraste "${card.title}" para mover entre colunas`;
+    }
+  };
+
   const handleDragStart = (e) => {
     console.log('🚀 Iniciando arraste do card:', card.title);
     
@@ -24,9 +39,16 @@ const Card = ({ card, columnId }) => {
     e.dataTransfer.setData('sourceColumn', columnId);
     e.dataTransfer.effectAllowed = 'move';
     
-    // Adicionar feedback visual
+    // Feedback visual diferente para cards com subtarefas
     e.target.style.opacity = '0.5';
-    e.target.style.transform = 'rotate(5deg)';
+    e.target.style.transform = hasSubtasks ? 'rotate(5deg) scale(1.02)' : 'rotate(5deg)';
+    
+    // Log informativo
+    if (isCardSubtask && parentCard) {
+      console.log(`📦 Movendo subtarefa que irá mover o card pai "${parentCard.title}" e todas suas subtarefas`);
+    } else if (hasSubtasks) {
+      console.log(`📦 Movendo card principal com ${subtasks.length} subtarefas`);
+    }
   };
 
   const handleDragEnd = (e) => {
@@ -41,12 +63,21 @@ const Card = ({ card, columnId }) => {
 
   return (
     <div
-      className={`card ${getPriorityClass(card.priority)}`}
+      className={`card ${getPriorityClass(card.priority)} ${isCardSubtask ? 'subtask-card' : ''}`}
       draggable="true"
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      title={`Arraste "${card.title}" para mover entre colunas`}
+      title={getDragTitle()}
     >
+      {isCardSubtask && parentCard && (
+        <div className="subtask-header">
+          <span className="subtask-indicator">↳</span>
+          <span className="parent-card-title">
+            {getCategoryInfo(parentCard.category).icon} {parentCard.title}
+          </span>
+        </div>
+      )}
+      
       <div className="card-header">
         <div className="category-badge" style={{ 
           backgroundColor: categoryInfo.bgColor,
@@ -69,6 +100,11 @@ const Card = ({ card, columnId }) => {
             {card.priority}
           </span>
           <span className="card-id">#{card.id}</span>
+          {hasSubtasks && (
+            <span className="subtasks-count" title={`Este card possui ${subtasks.length} subtarefa(s) que serão movidas junto`}>
+              📎 {subtasks.length}
+            </span>
+          )}
         </div>
       </div>
     </div>

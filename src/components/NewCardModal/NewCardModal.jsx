@@ -1,26 +1,42 @@
 import React, { useState } from 'react';
-import { categoryConfig } from '../../data/initialData';
+import { categoryConfig, getMainCategories, getSubtaskCategories, isSubtask } from '../../data/initialData';
 import './NewCardModal.css';
 
-const NewCardModal = ({ onClose, onCreateCard }) => {
+const NewCardModal = ({ onClose, onCreateCard, allCards }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('media');
   const [category, setCategory] = useState('historia');
+  const [parentId, setParentId] = useState('');
+
+  const mainCategories = getMainCategories();
+  const subtaskCategories = getSubtaskCategories();
+  const isCurrentSubtask = isSubtask(category);
+  
+  // Obter cards principais disponíveis
+  const mainCards = allCards ? Object.values(allCards).filter(card => !isSubtask(card.category)) : [];
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (title.trim()) {
-      onCreateCard({
+      const cardData = {
         title: title.trim(),
         description: description.trim(),
         priority,
         category
-      });
+      };
+      
+      // Adicionar parentId se for subtarefa
+      if (isCurrentSubtask && parentId) {
+        cardData.parentId = parentId;
+      }
+      
+      onCreateCard(cardData);
       setTitle('');
       setDescription('');
       setPriority('media');
       setCategory('historia');
+      setParentId('');
     }
   };
 
@@ -34,15 +50,49 @@ const NewCardModal = ({ onClose, onCreateCard }) => {
             <select
               id="category"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                // Limpar parentId se mudou para categoria principal
+                if (!isSubtask(e.target.value)) {
+                  setParentId('');
+                }
+              }}
             >
-              {Object.entries(categoryConfig).map(([key, config]) => (
-                <option key={key} value={key}>
-                  {config.icon} {config.name}
-                </option>
-              ))}
+              <optgroup label="Tarefas Principais">
+                {mainCategories.map((key) => (
+                  <option key={key} value={key}>
+                    {categoryConfig[key].icon} {categoryConfig[key].name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Subtarefas">
+                {subtaskCategories.map((key) => (
+                  <option key={key} value={key}>
+                    {categoryConfig[key].icon} {categoryConfig[key].name}
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </div>
+
+          {isCurrentSubtask && (
+            <div className="form-group">
+              <label htmlFor="parentId">Tarefa Principal</label>
+              <select
+                id="parentId"
+                value={parentId}
+                onChange={(e) => setParentId(e.target.value)}
+                required
+              >
+                <option value="">Selecione uma tarefa principal...</option>
+                {mainCards.map((card) => (
+                  <option key={card.id} value={card.id}>
+                    {categoryConfig[card.category].icon} {card.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           
           <div className="form-group">
             <label htmlFor="title">Título</label>

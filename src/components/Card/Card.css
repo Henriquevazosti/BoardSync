@@ -139,3 +139,64 @@
   background-color: #e3fcef;
   color: #006644;
 }
+
+/* Estilos para subtarefas */
+.subtask-card {
+  border-left: 4px solid #0065ff;
+  background: #f8faff;
+  margin-left: 12px;
+  position: relative;
+}
+
+.subtask-card::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, #0065ff 0%, rgba(0, 101, 255, 0.3) 100%);
+}
+
+.subtask-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  background: rgba(0, 101, 255, 0.08);
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.subtask-indicator {
+  color: #0065ff;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.parent-card-title {
+  color: #5e6c84;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 150px;
+}
+
+/* Contador de subtarefas */
+.subtasks-count {
+  background: rgba(0, 101, 255, 0.1);
+  color: #0065ff;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 4px;
+  border: 1px solid rgba(0, 101, 255, 0.2);
+}
+
+.card:hover .subtasks-count {
+  background: rgba(0, 101, 255, 0.15);
+  border-color: rgba(0, 101, 255, 0.3);
+}
