@@ -371,3 +371,78 @@
   font-size: 8px;
   font-weight: 600;
 }
+
+/* Data de vencimento */
+.card-due-date {
+  margin: 8px 0;
+}
+
+.due-date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+  transition: all 0.2s ease;
+}
+
+.due-date-badge.normal {
+  background-color: var(--color-borderLight);
+  color: var(--color-textSecondary);
+  border-color: var(--color-border);
+}
+
+.due-date-badge.due-soon {
+  background-color: var(--color-primaryLight);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.due-date-badge.due-today {
+  background-color: var(--color-warningLight);
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+  animation: pulse 2s infinite;
+}
+
+.due-date-badge.overdue {
+  background-color: var(--color-errorLight);
+  color: var(--color-error);
+  border-color: var(--color-error);
+  animation: shake 0.5s ease-in-out;
+}
+
+.due-date-icon {
+  font-size: 12px;
+}
+
+.due-date-text {
+  white-space: nowrap;
+}
+
+/* Animações para datas */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-2px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(2px);
+  }
+}
