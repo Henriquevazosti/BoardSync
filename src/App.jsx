@@ -121,6 +121,16 @@ function App() {
     setSelectedColumn(null);
   };
 
+  const handleEditCard = (updatedCard) => {
+    setData(prevData => ({
+      ...prevData,
+      cards: {
+        ...prevData.cards,
+        [updatedCard.id]: updatedCard
+      }
+    }));
+  };
+
   const handleCategoryToggle = (category) => {
     setSelectedCategories(prev => 
       prev.includes(category) 
@@ -180,6 +190,7 @@ function App() {
                 allCards={data.cards}
                 onAddCard={handleAddCard}
                 onMoveCard={moveCard}
+                onEditCard={handleEditCard}
               />
             );
           })}

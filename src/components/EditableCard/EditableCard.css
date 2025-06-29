@@ -1,0 +1,236 @@
+.editable-card {
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(9, 30, 66, 0.25);
+  border: 2px solid #0052cc;
+  position: relative;
+}
+
+.edit-header {
+  margin-bottom: 8px;
+}
+
+.category-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.subtask-indicator-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: rgba(0, 82, 204, 0.08);
+  border-radius: 4px;
+  font-size: 11px;
+  color: #5e6c84;
+}
+
+.subtask-arrow {
+  color: #0052cc;
+  font-weight: bold;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5e6c84;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Seções de categoria */
+.category-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.section-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: #8993a4;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.category-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.category-option {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #dfe1e6;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.category-option:hover {
+  border-color: #0052cc;
+  background: #f4f6f8;
+}
+
+.category-option.active {
+  border-color: #0052cc;
+  background: #e6f3ff;
+  color: #0052cc;
+}
+
+/* Opções de prioridade */
+.priority-options {
+  display: flex;
+  gap: 4px;
+}
+
+.priority-option {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.priority-option:hover {
+  background: #f4f6f8;
+}
+
+.priority-option.active {
+  border-color: #0052cc;
+  background: #e6f3ff;
+  color: #0052cc;
+}
+
+.priority-option.priority-alta.active {
+  border-color: #de350b;
+  background: #ffebe6;
+  color: #de350b;
+}
+
+.priority-option.priority-media.active {
+  border-color: #ff8b00;
+  background: #fff4e6;
+  color: #ff8b00;
+}
+
+.priority-option.priority-baixa.active {
+  border-color: #00875a;
+  background: #e3fcef;
+  color: #00875a;
+}
+
+/* Campos de input */
+.edit-title,
+.edit-description,
+.form-group select {
+  padding: 8px 12px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  transition: border-color 0.2s ease;
+}
+
+.edit-title:focus,
+.edit-description:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #0052cc;
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+.edit-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.edit-description {
+  font-size: 13px;
+  line-height: 1.4;
+  min-height: 60px;
+}
+
+/* Botões de ação */
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f2f4;
+}
+
+.btn-cancel,
+.btn-save {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background: #f4f6f8;
+  color: #5e6c84;
+}
+
+.btn-cancel:hover {
+  background: #e4e6ea;
+}
+
+.btn-save {
+  background: #0052cc;
+  color: white;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #0047b3;
+}
+
+.btn-save:disabled {
+  background: #dfe1e6;
+  color: #8993a4;
+  cursor: not-allowed;
+}

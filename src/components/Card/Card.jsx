@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { categoryConfig, isSubtask, getParentCard, getSubtasks } from '../../data/initialData';
+import EditableCard from '../EditableCard/EditableCard';
 import './Card.css';
 
-const Card = ({ card, columnId, allCards }) => {
+const Card = ({ card, columnId, allCards, onEditCard }) => {
+  const [isEditing, setIsEditing] = useState(false);
   const getPriorityClass = (priority) => {
     switch (priority) {
       case 'alta': return 'priority-high';
@@ -59,6 +61,32 @@ const Card = ({ card, columnId, allCards }) => {
     e.target.style.transform = 'none';
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSave = (updatedCard) => {
+    onEditCard(updatedCard);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
+  // Se está em modo de edição, mostrar o componente EditableCard
+  if (isEditing) {
+    return (
+      <EditableCard
+        card={card}
+        columnId={columnId}
+        allCards={allCards}
+        onSave={handleSave}
+        onCancel={handleCancel}
+      />
+    );
+  }
+
   const categoryInfo = getCategoryInfo(card.category);
 
   return (
@@ -86,7 +114,16 @@ const Card = ({ card, columnId, allCards }) => {
           <span className="category-icon">{categoryInfo.icon}</span>
           <span className="category-name">{categoryInfo.name}</span>
         </div>
-        <div className="drag-handle">⋮⋮</div>
+        <div className="card-actions">
+          <button 
+            className="edit-button" 
+            onClick={handleEdit}
+            title="Editar card"
+          >
+            ✏️
+          </button>
+          <div className="drag-handle">⋮⋮</div>
+        </div>
       </div>
       
       <h4 className="card-title">{card.title}</h4>
