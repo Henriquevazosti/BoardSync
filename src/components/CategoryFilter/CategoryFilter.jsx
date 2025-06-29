@@ -12,12 +12,10 @@ const CategoryFilter = ({ selectedCategories, onCategoryToggle, onClearAll }) =>
       className={`category-filter-btn ${selectedCategories.includes(key) ? 'active' : ''}`}
       onClick={() => onCategoryToggle(key)}
       style={{
-        backgroundColor: selectedCategories.includes(key) ? config.color : 'transparent',
-        color: selectedCategories.includes(key) ? 'white' : config.color,
         borderColor: config.color
       }}
     >
-      <span className="filter-icon">{config.icon}</span>
+      <span className="filter-icon" style={{ color: config.color }}>{config.icon}</span>
       <span className="filter-name">{config.name}</span>
     </button>
   );

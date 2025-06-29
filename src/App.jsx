@@ -43,6 +43,7 @@ function App() {
   const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [activityLogCardId, setActivityLogCardId] = useState(null);
+  const [isFiltersMinimized, setIsFiltersMinimized] = useState(false);
 
   // Funções de autenticação
   const handleLogin = (userData) => {
@@ -550,6 +551,11 @@ function App() {
     setIsActivityLogOpen(true);
   };
 
+  // Função para toggle dos filtros
+  const toggleFilters = () => {
+    setIsFiltersMinimized(!isFiltersMinimized);
+  };
+
   return (
     <div className="app">
       <Header 
@@ -561,17 +567,33 @@ function App() {
         onLogout={handleLogout}
       />
       <div className="board">
-        <div className="filters-section">
-          <CategoryFilter 
-            selectedCategories={selectedCategories}
-            onCategoryToggle={handleCategoryToggle}
-            onClearAll={handleClearFilters}
-          />
-          <DueDateFilter
-            selectedFilters={selectedDateFilters}
-            onFiltersChange={setSelectedDateFilters}
-            cardsStats={getCardsStats()}
-          />
+        <div className={`filters-section ${isFiltersMinimized ? 'minimized' : ''} ${(selectedCategories.length > 0 || selectedDateFilters.length > 0) ? 'has-active-filters' : ''}`}>
+          <div className="filters-header">
+            <h3 className="filters-title">
+              {isFiltersMinimized ? 'Filtros' : 'Filtros do Board'}
+            </h3>
+            <button 
+              className="toggle-filters-btn"
+              onClick={toggleFilters}
+              title={isFiltersMinimized ? 'Expandir filtros' : 'Minimizar filtros'}
+            >
+              {isFiltersMinimized ? '🔽' : '🔼'}
+            </button>
+          </div>
+          {!isFiltersMinimized && (
+            <div className="filters-content">
+              <CategoryFilter 
+                selectedCategories={selectedCategories}
+                onCategoryToggle={handleCategoryToggle}
+                onClearAll={handleClearFilters}
+              />
+              <DueDateFilter
+                selectedFilters={selectedDateFilters}
+                onFiltersChange={setSelectedDateFilters}
+                cardsStats={getCardsStats()}
+              />
+            </div>
+          )}
         </div>
         <div className="board-content">
           {data.columnOrder.map((columnId) => {

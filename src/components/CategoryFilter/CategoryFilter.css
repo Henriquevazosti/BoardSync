@@ -16,16 +16,16 @@
 }
 
 .filter-title {
-  color: white;
+  color: #333333;
   font-size: 14px;
   font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
 }
 
 .clear-filters {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  color: white;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(51, 51, 51, 0.3);
+  color: #333333;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
@@ -35,8 +35,8 @@
 }
 
 .clear-filters:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(51, 51, 51, 0.5);
   transform: translateY(-1px);
 }
 
@@ -51,33 +51,51 @@
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  border: 1px solid;
+  border: 2px solid;
   border-radius: 16px;
-  background: transparent;
+  background: white;
+  color: #333333;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 12px;
   font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .category-filter-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  background: #f8f9fa;
 }
 
 .category-filter-btn.active {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  background: #e8f4fd;
+  border-width: 2px;
+  font-weight: 600;
+}
+
+/* Efeito adicional para botões ativos */
+.category-filter-btn.active .filter-icon {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+.category-filter-btn.active .filter-name {
+  font-weight: 700;
 }
 
 .filter-icon {
   font-size: 12px;
+  /* O ícone vai manter a cor da categoria via inline style */
 }
 
 .filter-name {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  color: #333333;
 }
 
 .filter-section {

@@ -7,7 +7,27 @@
   border: 2px solid #0052cc;
   position: relative;
   overflow: visible;
-  min-height: 400px;
+  max-height: 500px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.editable-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.editable-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.editable-card::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.editable-card::-webkit-scrollbar-thumb:hover {
+  background: var(--color-borderDark);
 }
 
 .edit-header {
@@ -34,7 +54,7 @@
   background: rgba(0, 82, 204, 0.08);
   border-radius: 4px;
   font-size: 11px;
-  color: #5e6c84;
+  color: #333333;
 }
 
 .subtask-arrow {
@@ -60,7 +80,7 @@
 .form-group label {
   font-size: 12px;
   font-weight: 600;
-  color: #5e6c84;
+  color: #333333;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -81,7 +101,7 @@
 .section-title {
   font-size: 10px;
   font-weight: 600;
-  color: #8993a4;
+  color: #333333;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -218,7 +238,7 @@
 
 .btn-cancel {
   background: #f4f6f8;
-  color: #5e6c84;
+  color: #333333;
 }
 
 .btn-cancel:hover {
@@ -227,7 +247,7 @@
 
 .btn-save {
   background: #0052cc;
-  color: white;
+  color: #333333;
 }
 
 .btn-save:hover:not(:disabled) {
@@ -236,7 +256,7 @@
 
 .btn-save:disabled {
   background: #dfe1e6;
-  color: #8993a4;
+  color: #333333;
   cursor: not-allowed;
 }
 
