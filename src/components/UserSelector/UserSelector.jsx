@@ -11,7 +11,9 @@ const UserSelector = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [dropdownPosition, setDropdownPosition] = useState('bottom');
   const dropdownRef = useRef(null);
+  const triggerRef = useRef(null);
 
   const selectedUsers = selectedUserIds.map(id => allUsers[id]).filter(Boolean);
   const availableUsers = Object.values(allUsers).filter(user => 
@@ -30,6 +32,24 @@ const UserSelector = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && triggerRef.current) {
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const dropdownHeight = 300; // altura aproximada do dropdown
+      
+      // Verifica se há espaço suficiente abaixo
+      const spaceBelow = windowHeight - triggerRect.bottom;
+      const spaceAbove = triggerRect.top;
+      
+      if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+        setDropdownPosition('top');
+      } else {
+        setDropdownPosition('bottom');
+      }
+    }
+  }, [isOpen]);
 
   const toggleUser = (userId) => {
     const newSelectedIds = selectedUserIds.includes(userId)
@@ -79,6 +99,7 @@ const UserSelector = ({
   return (
     <div className="user-selector" ref={dropdownRef}>
       <div 
+        ref={triggerRef}
         className={`user-selector-trigger ${isOpen ? 'active' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -100,7 +121,7 @@ const UserSelector = ({
       </div>
 
       {isOpen && (
-        <div className="user-selector-dropdown">
+        <div className={`user-selector-dropdown ${dropdownPosition === 'top' ? 'dropdown-above' : ''}`}>
           <div className="user-search">
             <input
               type="text"

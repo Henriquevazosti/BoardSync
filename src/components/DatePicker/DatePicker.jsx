@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './DatePicker.css';
 
 const DatePicker = ({ 
@@ -13,6 +13,7 @@ const DatePicker = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(value ? new Date(value) : null);
+  const inputRef = useRef(null);
 
   // Função para formatar data para exibição
   const formatDisplayDate = (date) => {
@@ -82,7 +83,24 @@ const DatePicker = ({
       setSelectedDate(null);
       onChange(null);
     }
-    setIsOpen(false);
+  };
+
+  const handleDisplayClick = () => {
+    if (!disabled && inputRef.current) {
+      inputRef.current.focus();
+      // Tentar usar showPicker se disponível (navegadores modernos)
+      try {
+        if (inputRef.current.showPicker) {
+          inputRef.current.showPicker();
+        } else {
+          // Fallback para navegadores mais antigos
+          inputRef.current.click();
+        }
+      } catch (error) {
+        // Se showPicker falhar, usar click como fallback
+        inputRef.current.click();
+      }
+    }
   };
 
   const handleClear = (e) => {
@@ -118,6 +136,7 @@ const DatePicker = ({
       
       <div className={`date-picker-input ${getDateClassName()} ${disabled ? 'disabled' : ''}`}>
         <input
+          ref={inputRef}
           type={showTime ? 'datetime-local' : 'date'}
           value={formatInputValue(selectedDate)}
           onChange={handleDateChange}
@@ -126,7 +145,7 @@ const DatePicker = ({
           className="date-input"
         />
         
-        <div className="date-display" onClick={() => !disabled && setIsOpen(!isOpen)}>
+        <div className="date-display" onClick={handleDisplayClick}>
           {selectedDate ? (
             <span className={`date-text ${getDateClassName()}`}>
               {formatDisplayDate(selectedDate)}

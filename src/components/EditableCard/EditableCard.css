@@ -6,6 +6,8 @@
   box-shadow: 0 2px 8px rgba(9, 30, 66, 0.25);
   border: 2px solid #0052cc;
   position: relative;
+  overflow: visible;
+  min-height: 400px;
 }
 
 .edit-header {
@@ -43,13 +45,16 @@
 .edit-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 8px;
 }
 
 .form-group label {
@@ -233,4 +238,17 @@
   background: #dfe1e6;
   color: #8993a4;
   cursor: not-allowed;
+}
+
+/* Form groups com dropdowns */
+.form-group:has(.user-selector) {
+  z-index: 10;
+}
+
+.form-group:has(.date-picker) {
+  z-index: 5;
+}
+
+.form-group:has(.label-selector) {
+  z-index: 8;
 }

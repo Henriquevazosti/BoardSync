@@ -19,6 +19,8 @@
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
+  z-index: 1001;
 }
 
 .modal-content h2 {
@@ -27,7 +29,8 @@
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  position: relative;
 }
 
 .form-group label {
