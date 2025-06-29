@@ -24,10 +24,31 @@
   flex: 1;
 }
 
-.card-count {
+.column-counts {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.filtered-count {
+  background: #0079bf;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.count-separator {
+  color: #5e6c84;
+  margin: 0 2px;
+}
+
+.total-count {
   background: #ddd;
   color: #5e6c84;
-  font-size: 12px;
   padding: 2px 6px;
   border-radius: 10px;
   min-width: 20px;

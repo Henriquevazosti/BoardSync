@@ -2,7 +2,7 @@ import React from 'react';
 import Card from '../Card/Card';
 import './Column.css';
 
-const Column = ({ column, cards, onAddCard, onMoveCard }) => {
+const Column = ({ column, cards, totalCards, onAddCard, onMoveCard }) => {
   const handleDragOver = (e) => {
     e.preventDefault();
     console.log('📍 Arrastando sobre a coluna:', column.title);
@@ -41,6 +41,9 @@ const Column = ({ column, cards, onAddCard, onMoveCard }) => {
     }
   };
 
+  const filteredCount = cards.length;
+  const hasFilter = filteredCount !== totalCards;
+
   return (
     <div 
       className="column"
@@ -50,7 +53,15 @@ const Column = ({ column, cards, onAddCard, onMoveCard }) => {
     >
       <div className="column-header">
         <h3 className="column-title">{column.title}</h3>
-        <span className="card-count">{cards.length}</span>
+        <div className="column-counts">
+          {hasFilter && (
+            <>
+              <span className="filtered-count">{filteredCount}</span>
+              <span className="count-separator">/</span>
+            </>
+          )}
+          <span className="total-count">{totalCards}</span>
+        </div>
       </div>
 
       <div className="column-content">
@@ -64,7 +75,7 @@ const Column = ({ column, cards, onAddCard, onMoveCard }) => {
         
         {cards.length === 0 && (
           <div className="empty-column">
-            <p>Solte cards aqui</p>
+            <p>{hasFilter ? 'Nenhum card corresponde ao filtro' : 'Solte cards aqui'}</p>
           </div>
         )}
       </div>
