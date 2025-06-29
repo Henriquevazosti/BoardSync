@@ -83,7 +83,10 @@ export const initialData = {
       isBlocked: false,
       blockReason: '',
       labels: ['label-1', 'label-2'],
-      assignedUsers: ['user-1', 'user-2']
+      assignedUsers: ['user-1', 'user-2'],
+      dueDate: '2025-07-05T23:59:59.999Z',
+      createdAt: '2025-06-20T10:00:00.000Z',
+      completedAt: null
     },
     'card-2': {
       id: 'card-2',
@@ -94,7 +97,10 @@ export const initialData = {
       isBlocked: true,
       blockReason: 'Aguardando definição dos requisitos de segurança pela equipe de compliance',
       labels: ['label-2', 'label-3', 'label-4'],
-      assignedUsers: ['user-3']
+      assignedUsers: ['user-3'],
+      dueDate: '2025-07-15T23:59:59.999Z',
+      createdAt: '2025-06-18T14:30:00.000Z',
+      completedAt: null
     },
     'card-3': {
       id: 'card-3',
@@ -105,7 +111,10 @@ export const initialData = {
       isBlocked: false,
       blockReason: '',
       labels: ['label-1'],
-      assignedUsers: ['user-1']
+      assignedUsers: ['user-1'],
+      dueDate: '2025-07-10T23:59:59.999Z',
+      createdAt: '2025-06-22T09:15:00.000Z',
+      completedAt: null
     },
     'card-4': {
       id: 'card-4',
@@ -116,7 +125,10 @@ export const initialData = {
       isBlocked: false,
       blockReason: '',
       labels: ['label-1', 'label-3'],
-      assignedUsers: ['user-4', 'user-1']
+      assignedUsers: ['user-4', 'user-1'],
+      dueDate: '2025-07-02T23:59:59.999Z',
+      createdAt: '2025-06-25T16:45:00.000Z',
+      completedAt: null
     },
     'card-5': {
       id: 'card-5',
@@ -127,7 +139,10 @@ export const initialData = {
       isBlocked: false,
       blockReason: '',
       labels: ['label-5', 'label-4'],
-      assignedUsers: ['user-5']
+      assignedUsers: ['user-5'],
+      dueDate: '2025-07-20T23:59:59.999Z',
+      createdAt: '2025-06-26T11:00:00.000Z',
+      completedAt: null
     },
     'card-6': {
       id: 'card-6',
@@ -138,7 +153,10 @@ export const initialData = {
       isBlocked: false,
       blockReason: '',
       labels: ['label-2'],
-      assignedUsers: ['user-2']
+      assignedUsers: ['user-2'],
+      dueDate: '2025-07-25T23:59:59.999Z',
+      createdAt: '2025-06-24T15:30:00.000Z',
+      completedAt: null
     },
     'card-7': {
       id: 'card-7',
@@ -353,3 +371,88 @@ export const labelColors = [
   { name: 'Cinza', color: '#5e6c84', bgColor: '#f4f5f7' },
   { name: 'Marrom', color: '#8d6e63', bgColor: '#efebe9' }
 ];
+
+// Funções utilitárias para datas
+export const formatDate = (dateString) => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+  const dateToCheck = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  
+  // Verifica se é hoje
+  if (dateToCheck.getTime() === today.getTime()) {
+    return 'Hoje';
+  }
+  
+  // Verifica se é amanhã
+  if (dateToCheck.getTime() === tomorrow.getTime()) {
+    return 'Amanhã';
+  }
+  
+  // Formato padrão
+  return date.toLocaleDateString('pt-BR', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  });
+};
+
+export const isOverdue = (dateString) => {
+  if (!dateString) return false;
+  const date = new Date(dateString);
+  const now = new Date();
+  return date < now;
+};
+
+export const isDueToday = (dateString) => {
+  if (!dateString) return false;
+  const date = new Date(dateString);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dateToCheck = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return dateToCheck.getTime() === today.getTime();
+};
+
+export const isDueSoon = (dateString) => {
+  if (!dateString) return false;
+  const date = new Date(dateString);
+  const now = new Date();
+  const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  return date <= threeDaysFromNow && date > now;
+};
+
+export const getDueDateStatus = (dateString) => {
+  if (!dateString) return null;
+  
+  if (isOverdue(dateString)) return 'overdue';
+  if (isDueToday(dateString)) return 'due-today';
+  if (isDueSoon(dateString)) return 'due-soon';
+  return 'normal';
+};
+
+export const sortCardsByDueDate = (cards) => {
+  return [...cards].sort((a, b) => {
+    // Cards sem data vão para o final
+    if (!a.dueDate && !b.dueDate) return 0;
+    if (!a.dueDate) return 1;
+    if (!b.dueDate) return -1;
+    
+    // Ordenar por data
+    return new Date(a.dueDate) - new Date(b.dueDate);
+  });
+};
+
+export const getCardsOverdue = (cards) => {
+  return Object.values(cards).filter(card => isOverdue(card.dueDate));
+};
+
+export const getCardsDueToday = (cards) => {
+  return Object.values(cards).filter(card => isDueToday(card.dueDate));
+};
+
+export const getCardsDueSoon = (cards) => {
+  return Object.values(cards).filter(card => isDueSoon(card.dueDate));
+};
