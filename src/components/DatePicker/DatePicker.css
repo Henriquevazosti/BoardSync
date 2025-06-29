@@ -19,6 +19,8 @@
   background: var(--color-cardBackground);
   transition: all var(--animation-duration) ease;
   overflow: hidden;
+  display: flex;
+  align-items: center;
 }
 
 .date-picker-input:hover {
@@ -45,9 +47,11 @@
   border: none;
   outline: none;
   background: transparent;
-  color: transparent;
+  color: #1f2937;
   cursor: pointer;
-  z-index: 2;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .date-display {
@@ -55,12 +59,11 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  cursor: pointer;
   transition: all var(--animation-duration) ease;
   min-height: 42px;
   position: relative;
   z-index: 1;
-  pointer-events: none;
+  flex: 1;
 }
 
 .date-display:hover {
@@ -69,20 +72,53 @@
 
 .date-text {
   font-size: 14px;
-  color: var(--color-textPrimary);
+  color: #1f2937 !important;
   font-weight: 500;
+  text-shadow: none !important;
+  background: transparent !important;
+  text-decoration: none !important;
 }
 
 .date-placeholder {
-  color: var(--color-textMuted);
+  color: #6b7280;
   font-size: 14px;
 }
 
-.date-icon {
+.date-icon-btn {
   font-size: 16px;
   color: var(--color-textSecondary);
   margin-left: 8px;
   flex-shrink: 0;
+  cursor: pointer;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  transition: all 0.2s ease;
+  user-select: none;
+  z-index: 10;
+  position: relative;
+  pointer-events: auto;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-icon-btn:hover:not(:disabled) {
+  background: var(--color-borderLight);
+  color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+.date-icon-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.date-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .clear-date-btn {
@@ -110,6 +146,53 @@
   transform: scale(1.1);
 }
 
+/* Garantir que o texto da data seja sempre visível */
+.date-picker .date-text,
+.date-picker-input .date-text,
+.date-display .date-text,
+div.date-display span.date-text {
+  color: #1f2937 !important;
+  font-weight: 500 !important;
+}
+
+.date-picker .date-placeholder,
+.date-picker-input .date-placeholder {
+  color: #6b7280 !important;
+}
+
+/* Fallback específico para garantir visibilidade */
+.date-picker-input .date-display span {
+  color: #1f2937 !important;
+}
+
+.date-picker span.date-text:not(.overdue):not(.due-today):not(.due-soon) {
+  color: #1f2937 !important;
+  font-weight: 500 !important;
+}
+
+/* Debug: remover background que pode estar escondendo o texto */
+.date-picker .date-display,
+.date-picker-input .date-display {
+  background: transparent !important;
+}
+
+/* Estados específicos mantêm suas cores */
+.date-text.overdue {
+  color: #de350b !important;
+  font-weight: 600;
+}
+
+.date-text.due-today {
+  color: #ff8b00 !important;
+  font-weight: 600;
+}
+
+.date-text.due-soon {
+  color: #0052cc !important;
+  font-weight: 600;
+  background: transparent !important;
+}
+
 /* Estados das datas */
 .date-picker-input.overdue {
   border-color: var(--color-error);
@@ -134,6 +217,11 @@
 .date-picker-input.due-soon {
   border-color: var(--color-primary);
   background: var(--color-primaryLight);
+}
+
+.date-picker-input.due-soon .date-text {
+  color: var(--color-primary) !important;
+  font-weight: 600;
 }
 
 .date-text.due-soon {
@@ -172,6 +260,28 @@
 .date-indicator.due-soon {
   background: var(--color-primaryLight);
   color: var(--color-primary);
+}
+
+/* Garantir contraste em todos os estados */
+.date-picker-input.due-soon .date-display .date-text,
+.date-picker-input.due-today .date-display .date-text,
+.date-picker-input.overdue .date-display .date-text {
+  text-shadow: none !important;
+  -webkit-text-fill-color: initial !important;
+  background-clip: initial !important;
+}
+
+/* Força cores específicas para melhor visibilidade */
+.date-picker-input.due-soon .date-text {
+  color: #0052cc !important;
+}
+
+.date-picker-input.due-today .date-text {
+  color: #ff8b00 !important;
+}
+
+.date-picker-input.overdue .date-text {
+  color: #de350b !important;
 }
 
 /* Responsividade */

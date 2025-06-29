@@ -103,6 +103,35 @@ const DatePicker = ({
     }
   };
 
+  const handleIconClick = (e) => {
+    console.log('Ícone clicado!', { disabled, inputRef: inputRef.current });
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!disabled && inputRef.current) {
+      try {
+        // Forçar focus e clique no input
+        inputRef.current.focus();
+        inputRef.current.click();
+        
+        console.log('Input focado e clicado');
+        
+        // Tentar showPicker se disponível
+        if (inputRef.current.showPicker) {
+          inputRef.current.showPicker();
+          console.log('showPicker executado');
+        } else {
+          console.log('showPicker não disponível');
+        }
+      } catch (error) {
+        console.error('Erro ao abrir date picker:', error);
+      }
+    } else {
+      console.log('Condições não atendidas:', { disabled, hasInput: !!inputRef.current });
+    }
+  };
+
   const handleClear = (e) => {
     e.stopPropagation();
     setSelectedDate(null);
@@ -145,7 +174,7 @@ const DatePicker = ({
           className="date-input"
         />
         
-        <div className="date-display" onClick={handleDisplayClick}>
+        <div className="date-display">
           {selectedDate ? (
             <span className={`date-text ${getDateClassName()}`}>
               {formatDisplayDate(selectedDate)}
@@ -166,7 +195,15 @@ const DatePicker = ({
           )}
         </div>
         
-        <span className="date-icon">📅</span>
+        <button 
+          type="button"
+          className="date-icon-btn" 
+          onClick={handleIconClick} 
+          title="Selecionar data"
+          disabled={disabled}
+        >
+          📅
+        </button>
       </div>
 
       {/* Indicadores visuais */}
