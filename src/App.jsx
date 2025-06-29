@@ -12,6 +12,7 @@ import ThemeSelector from './components/ThemeSelector/ThemeSelector';
 import ActivityLog from './components/ActivityLog/ActivityLog';
 import CommentsModal from './components/CommentsModal/CommentsModal';
 import CardDetailView from './components/CardDetailView/CardDetailView';
+import TeamChat from './components/TeamChat/TeamChat';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import { 
@@ -51,6 +52,8 @@ function App() {
   const [comments, setComments] = useState([]);
   const [isCardDetailOpen, setIsCardDetailOpen] = useState(false);
   const [selectedCardForDetail, setSelectedCardForDetail] = useState(null);
+  const [isTeamChatOpen, setIsTeamChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
 
   // Funções de autenticação
   const handleLogin = (userData) => {
@@ -630,6 +633,36 @@ function App() {
     }
   };
 
+  // Funções para o Team Chat
+  const handleOpenTeamChat = () => {
+    setIsTeamChatOpen(true);
+  };
+
+  const handleCloseTeamChat = () => {
+    setIsTeamChatOpen(false);
+  };
+
+  const handleSendChatMessage = (message) => {
+    setChatMessages(prev => [...prev, message]);
+    
+    // Adicionar atividade de mensagem no chat
+    addActivity(
+      'team-chat',
+      'chat_message',
+      'Nova mensagem no chat da equipe',
+      null,
+      {
+        messageType: message.type,
+        hasFile: !!message.file,
+        preview: message.content ? (message.content.length > 50 ? 
+          message.content.substring(0, 50) + '...' : message.content) : 
+          `Enviou ${message.type === 'image' ? 'uma imagem' : 
+                   message.type === 'video' ? 'um vídeo' : 
+                   message.type === 'audio' ? 'um áudio' : 'um arquivo'}`
+      }
+    );
+  };
+
   // Função auxiliar para encontrar card em todas as colunas
   const findCardInAllColumns = (cardId) => {
     console.log('Procurando card com ID:', cardId);
@@ -652,6 +685,7 @@ function App() {
         onManageUsers={handleManageUsers}
         onManageThemes={handleManageThemes}
         onViewActivities={handleViewAllActivities}
+        onOpenTeamChat={handleOpenTeamChat}
         onLogout={handleLogout}
       />
       <div className="board">
@@ -809,6 +843,17 @@ function App() {
           onDeleteComment={handleDeleteComment}
           onViewActivityLog={handleViewActivityLog}
           onManageLabels={handleManageLabels}
+        />
+      )}
+
+      {isTeamChatOpen && (
+        <TeamChat
+          isOpen={isTeamChatOpen}
+          onClose={handleCloseTeamChat}
+          currentUser={user}
+          allUsers={data.users}
+          messages={chatMessages}
+          onSendMessage={handleSendChatMessage}
         />
       )}
     </div>
