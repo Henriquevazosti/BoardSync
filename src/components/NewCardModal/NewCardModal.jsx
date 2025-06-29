@@ -1,28 +1,24 @@
 import React, { useState } from 'react';
 import './NewCardModal.css';
 
-const NewCardModal = ({ isOpen, onClose, onSave, columnId }) => {
+const NewCardModal = ({ onClose, onCreateCard }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState('medium');
+  const [priority, setPriority] = useState('media');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (title.trim()) {
-      onSave({
+      onCreateCard({
         title: title.trim(),
         description: description.trim(),
-        priority,
-        columnId
+        priority
       });
       setTitle('');
       setDescription('');
-      setPriority('medium');
-      onClose();
+      setPriority('media');
     }
   };
-
-  if (!isOpen) return null;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -37,6 +33,7 @@ const NewCardModal = ({ isOpen, onClose, onSave, columnId }) => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+              autoFocus
             />
           </div>
           <div className="form-group">
@@ -55,9 +52,9 @@ const NewCardModal = ({ isOpen, onClose, onSave, columnId }) => {
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
             >
-              <option value="low">Baixa</option>
-              <option value="medium">Média</option>
-              <option value="high">Alta</option>
+              <option value="baixa">Baixa</option>
+              <option value="media">Média</option>
+              <option value="alta">Alta</option>
             </select>
           </div>
           <div className="modal-actions">

@@ -1,45 +1,97 @@
 .card {
-  background: #ffffff;
+  background: white;
   border-radius: 3px;
-  padding: 8px 12px;
+  padding: 8px;
   margin-bottom: 8px;
-  box-shadow: 0 1px 0 rgba(9, 45, 66, 0.25);
-  cursor: pointer;
-  transition: all 0.1s ease;
-  border: none;
-  min-height: 20px;
+  box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
+  cursor: grab;
+  transition: all 0.2s ease;
+  border-left: 4px solid transparent;
+  user-select: none;
+  position: relative;
 }
 
 .card:hover {
-  background: #f4f5f7;
-  box-shadow: 0 1px 3px rgba(9, 45, 66, 0.25);
+  box-shadow: 0 2px 4px rgba(9, 30, 66, 0.15);
+  transform: translateY(-1px);
 }
 
-.card h3 {
-  margin: 0 0 4px 0;
-  color: #172b4d;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  word-wrap: break-word;
+.card:active {
+  cursor: grabbing;
 }
 
-.card p {
-  margin: 0;
-  color: #5e6c84;
+.drag-handle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: #a5adba;
   font-size: 12px;
-  line-height: 16px;
-  word-wrap: break-word;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
 }
 
-.card.priority-high {
-  border-left: 4px solid #ef5350;
+.card:hover .drag-handle {
+  opacity: 1;
 }
 
-.card.priority-medium {
-  border-left: 4px solid #ff9800;
+.card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #172b4d;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+  pointer-events: none;
+  padding-right: 20px;
 }
 
-.card.priority-low {
-  border-left: 4px solid #4caf50;
+.card-description {
+  font-size: 12px;
+  color: #5e6c84;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  pointer-events: none;
+}
+
+.priority-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.priority-high {
+  border-left-color: #ff5630;
+}
+
+.priority-high .priority-badge {
+  background-color: #ffebe6;
+  color: #bf2600;
+}
+
+.priority-medium {
+  border-left-color: #ffab00;
+}
+
+.priority-medium .priority-badge {
+  background-color: #fffae6;
+  color: #ff8b00;
+}
+
+.priority-low {
+  border-left-color: #36b37e;
+}
+
+.priority-low .priority-badge {
+  background-color: #e3fcef;
+  color: #006644;
 }
