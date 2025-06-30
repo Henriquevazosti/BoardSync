@@ -76,7 +76,16 @@ const DatePicker = ({
   const handleDateChange = (event) => {
     const dateValue = event.target.value;
     if (dateValue) {
-      const newDate = new Date(dateValue);
+      let newDate;
+      if (showTime) {
+        // Para datetime-local, o valor já está no timezone local
+        newDate = new Date(dateValue);
+      } else {
+        // Para date input, precisamos garantir que seja interpretado como timezone local
+        // O input date retorna no formato YYYY-MM-DD
+        const [year, month, day] = dateValue.split('-').map(Number);
+        newDate = new Date(year, month - 1, day); // month é 0-indexed
+      }
       setSelectedDate(newDate);
       onChange(newDate.toISOString());
     } else {
@@ -152,10 +161,18 @@ const DatePicker = ({
     
     if (showTime) {
       // Para datetime-local input
-      return date.toISOString().slice(0, 16);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
     } else {
-      // Para date input
-      return date.toISOString().slice(0, 10);
+      // Para date input - usar componentes locais da data
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
   };
 
