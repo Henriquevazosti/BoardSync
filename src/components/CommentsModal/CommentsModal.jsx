@@ -9,6 +9,7 @@ const CommentsModal = ({
   comments, 
   currentUser, 
   onAddComment, 
+  onEditComment,
   onDeleteComment 
 }) => {
   if (!isOpen || !card) return null;
@@ -37,6 +38,7 @@ const CommentsModal = ({
             comments={cardComments}
             currentUser={currentUser}
             onAddComment={onAddComment}
+            onEditComment={onEditComment}
             onDeleteComment={onDeleteComment}
           />
         </div>

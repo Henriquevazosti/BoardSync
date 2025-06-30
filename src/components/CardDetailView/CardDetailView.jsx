@@ -22,6 +22,7 @@ const CardDetailView = ({
   onSave, 
   onClose,
   onAddComment,
+  onEditComment,
   onDeleteComment,
   onViewActivityLog,
   onManageLabels
@@ -263,6 +264,7 @@ const CardDetailView = ({
                 comments={cardComments}
                 currentUser={currentUser}
                 onAddComment={onAddComment}
+                onEditComment={onEditComment}
                 onDeleteComment={onDeleteComment}
               />
             </div>

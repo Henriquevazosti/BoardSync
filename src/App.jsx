@@ -691,6 +691,35 @@ function App() {
     }
   };
 
+  // Função para editar comentário
+  const handleEditComment = (editedComment) => {
+    setComments(prev => 
+      prev.map(comment => 
+        comment.id === editedComment.id ? editedComment : comment
+      )
+    );
+    
+    // Adicionar atividade de edição de comentário
+    const activity = createActivity(
+      editedComment.cardId,
+      user.id,
+      activityTypes.COMMENT_EDITED || 'comment_edited',
+      'Comentário editado',
+      null,
+      { 
+        cardTitle: selectedCardForComments?.title || 'Card',
+        commentText: editedComment.text.length > 50 ? editedComment.text.substring(0, 50) + '...' : editedComment.text
+      }
+    );
+    setData(prev => ({
+      ...prev,
+      activities: {
+        ...prev.activities,
+        [activity.id]: activity
+      }
+    }));
+  };
+
   // Funções para o Team Chat
   const handleOpenTeamChat = () => {
     setIsTeamChatOpen(true);
@@ -895,6 +924,7 @@ function App() {
           currentUser={user}
           onAddComment={handleAddComment}
           onDeleteComment={handleDeleteComment}
+          onEditComment={handleEditComment}
         />
       )}
 
@@ -909,6 +939,7 @@ function App() {
           onSave={handleEditCard}
           onClose={handleCloseCardDetail}
           onAddComment={handleAddComment}
+          onEditComment={handleEditComment}
           onDeleteComment={handleDeleteComment}
           onViewActivityLog={handleViewActivityLog}
           onManageLabels={handleManageLabels}

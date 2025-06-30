@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import MediaUpload from '../MediaUpload/MediaUpload';
 import MediaViewer from '../MediaViewer/MediaViewer';
+import CommentHistory from '../CommentHistory/CommentHistory';
 import './Comments.css';
 
-const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteComment }) => {
+const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteComment, onEditComment }) => {
   const [newComment, setNewComment] = useState('');
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editedText, setEditedText] = useState('');
+  const [editedFiles, setEditedFiles] = useState([]);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [selectedCommentForHistory, setSelectedCommentForHistory] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,6 +77,107 @@ const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteCo
     return currentUser && (currentUser.id === comment.author.id || currentUser.role === 'admin');
   };
 
+  const canEditComment = (comment) => {
+    return currentUser && currentUser.id === comment.author.id;
+  };
+
+  const startEditingComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditedText(comment.text || '');
+    // Converter URLs dos anexos existentes para o formato esperado pelo MediaUpload
+    if (comment.attachments && comment.attachments.length > 0) {
+      const existingFiles = comment.attachments.map(attachment => ({
+        ...attachment,
+        isExisting: true // Flag para identificar arquivos já existentes
+      }));
+      setEditedFiles(existingFiles);
+    } else {
+      setEditedFiles([]);
+    }
+  };
+
+  const cancelEditingComment = () => {
+    setEditingCommentId(null);
+    setEditedText('');
+    setEditedFiles([]);
+  };
+
+  const saveEditedComment = async () => {
+    const commentToEdit = comments.find(c => c.id === editingCommentId);
+    if (!commentToEdit || isSubmitting) return;
+
+    if (!editedText.trim() && editedFiles.length === 0) {
+      alert('Comentário não pode ficar vazio');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Processar anexos (separar existentes dos novos)
+      const existingAttachments = editedFiles.filter(file => file.isExisting);
+      const newAttachments = editedFiles
+        .filter(file => !file.isExisting)
+        .map(file => ({
+          id: file.id,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          mimeType: file.mimeType,
+          url: file.url,
+          uploadDate: new Date().toISOString()
+        }));
+
+      const allAttachments = [...existingAttachments, ...newAttachments];
+
+      const editedComment = {
+        ...commentToEdit,
+        text: editedText.trim(),
+        attachments: allAttachments.length > 0 ? allAttachments : undefined,
+        editedAt: new Date().toISOString(),
+        editHistory: [
+          ...(commentToEdit.editHistory || []),
+          {
+            id: Date.now().toString(),
+            previousText: commentToEdit.text,
+            previousAttachments: commentToEdit.attachments,
+            editedAt: new Date().toISOString(),
+            editedBy: currentUser
+          }
+        ]
+      };
+
+      if (onEditComment) {
+        onEditComment(editedComment);
+      }
+
+      cancelEditingComment();
+    } catch (error) {
+      console.error('Erro ao editar comentário:', error);
+      alert('Erro ao editar comentário. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditFilesSelected = (files) => {
+    setEditedFiles(prev => [...prev, ...files]);
+  };
+
+  const handleEditRemoveFile = (fileId) => {
+    setEditedFiles(prev => prev.filter(file => file.id !== fileId));
+  };
+
+  const openHistoryModal = (comment) => {
+    setSelectedCommentForHistory(comment);
+    setHistoryModalOpen(true);
+  };
+
+  const closeHistoryModal = () => {
+    setHistoryModalOpen(false);
+    setSelectedCommentForHistory(null);
+  };
+
   const handleFilesSelected = (files) => {
     setSelectedFiles(prev => [...prev, ...files]);
   };
@@ -129,26 +236,95 @@ const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteCo
                     </span>
                   </div>
                 </div>
-                {canDeleteComment(comment) && (
-                  <button
-                    className="delete-comment-btn"
-                    onClick={() => onDeleteComment(comment.id)}
-                    title="Excluir comentário"
-                  >
-                    🗑️
-                  </button>
-                )}
-              </div>
-              <div className="comment-text">
-                {comment.text}
+                <div className="comment-actions-buttons">
+                  {canEditComment(comment) && editingCommentId !== comment.id && (
+                    <button
+                      className="edit-comment-btn"
+                      onClick={() => startEditingComment(comment)}
+                      title="Editar comentário"
+                    >
+                      ✏️
+                    </button>
+                  )}
+                  {canDeleteComment(comment) && (
+                    <button
+                      className="delete-comment-btn"
+                      onClick={() => onDeleteComment(comment.id)}
+                      title="Excluir comentário"
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
               </div>
               
-              {/* Exibir anexos de mídia */}
-              {comment.attachments && comment.attachments.length > 0 && (
-                <MediaViewer 
-                  attachments={comment.attachments} 
-                  compact={true}
-                />
+              {editingCommentId === comment.id ? (
+                // Formulário de edição
+                <div className="edit-comment-form">
+                  <div className="edit-input-container">
+                    <textarea
+                      className="edit-comment-input"
+                      value={editedText}
+                      onChange={(e) => setEditedText(e.target.value)}
+                      placeholder="Edite seu comentário..."
+                      rows="3"
+                      disabled={isSubmitting}
+                    />
+                    
+                    {/* Upload de mídia para edição */}
+                    <MediaUpload
+                      onFilesSelected={handleEditFilesSelected}
+                      selectedFiles={editedFiles}
+                      onRemoveFile={handleEditRemoveFile}
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  
+                  <div className="edit-comment-actions">
+                    <button
+                      type="button"
+                      className="btn-cancel-edit"
+                      onClick={cancelEditingComment}
+                      disabled={isSubmitting}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-save-edit"
+                      onClick={saveEditedComment}
+                      disabled={(!editedText.trim() && editedFiles.length === 0) || isSubmitting}
+                    >
+                      {isSubmitting ? 'Salvando...' : 'Salvar'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Exibição normal do comentário
+                <>
+                  <div className="comment-text">
+                    {comment.text}
+                    {comment.editedAt && (
+                      <span className="edited-indicator-wrapper">
+                        <span 
+                          className="edited-indicator clickable" 
+                          title={`Editado em ${formatTimestamp(comment.editedAt)}`}
+                          onClick={() => openHistoryModal(comment)}
+                        >
+                          (editado)
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Exibir anexos de mídia */}
+                  {comment.attachments && comment.attachments.length > 0 && (
+                    <MediaViewer 
+                      attachments={comment.attachments} 
+                      compact={true}
+                    />
+                  )}
+                </>
               )}
             </div>
           ))
@@ -207,6 +383,14 @@ const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteCo
           </div>
         </form>
       )}
+      
+      {/* Modal de histórico de edições */}
+      <CommentHistory
+        isOpen={historyModalOpen}
+        onClose={closeHistoryModal}
+        comment={selectedCommentForHistory}
+        currentUser={currentUser}
+      />
     </div>
   );
 };

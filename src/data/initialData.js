@@ -672,6 +672,7 @@ export const activityTypes = {
   COMPLETED: 'completed',
   REOPENED: 'reopened',
   COMMENT_ADDED: 'comment_added',
+  COMMENT_EDITED: 'comment_edited',
   COMMENT_DELETED: 'comment_deleted',
   CHAT_MESSAGE: 'chat_message',
   DATA_IMPORTED: 'data_imported',
