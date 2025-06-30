@@ -1,7 +1,7 @@
 import React from 'react';
 import './DueDateFilter.css';
 
-const DueDateFilter = ({ selectedFilters, onFiltersChange, cardsStats }) => {
+const DueDateFilter = ({ selectedFilters = [], onSelectionChange, onFiltersChange, cardsStats = {} }) => {
   const filters = [
     {
       id: 'all',
@@ -41,12 +41,15 @@ const DueDateFilter = ({ selectedFilters, onFiltersChange, cardsStats }) => {
   ];
 
   const handleFilterClick = (filterId) => {
+    const handleChange = onFiltersChange || onSelectionChange;
+    if (!handleChange) return;
+    
     if (filterId === 'all') {
-      onFiltersChange([]);
+      handleChange([]);
     } else if (selectedFilters.includes(filterId)) {
-      onFiltersChange(selectedFilters.filter(f => f !== filterId));
+      handleChange(selectedFilters.filter(f => f !== filterId));
     } else {
-      onFiltersChange([...selectedFilters, filterId]);
+      handleChange([...selectedFilters, filterId]);
     }
   };
 
@@ -106,7 +109,7 @@ const DueDateFilter = ({ selectedFilters, onFiltersChange, cardsStats }) => {
             })}
             <button
               className="clear-all-filters-btn"
-              onClick={() => onFiltersChange([])}
+              onClick={() => onSelectionChange && onSelectionChange([])}
               title="Limpar todos os filtros"
             >
               Limpar tudo

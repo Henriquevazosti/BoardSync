@@ -11,7 +11,51 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
+    // Otimizações de performance
+    minify: 'esbuild',
+    target: 'esnext',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separar vendor chunks
+          vendor: ['react', 'react-dom'],
+          // Componentes lazy
+          modals: [
+            './src/components/NewCardModal/NewCardModal.jsx',
+            './src/components/CommentsModal/CommentsModal.jsx',
+            './src/components/CardDetailView/CardDetailView.jsx'
+          ],
+          filters: [
+            './src/components/CategoryFilter/CategoryFilter.jsx',
+            './src/components/DueDateFilter/DueDateFilter.jsx'
+          ],
+          managers: [
+            './src/components/LabelManager/LabelManager.jsx',
+            './src/components/UserManager/UserManager.jsx',
+            './src/components/DataManager/DataManager.jsx'
+          ]
+        }
+      }
+    },
+    // Chunk size warnings
+    chunkSizeWarningLimit: 1000
+  },
+  // Otimizações de desenvolvimento
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+    exclude: ['@vitejs/plugin-react']
+  },
+  // Aliases para imports mais limpos
+  resolve: {
+    alias: {
+      '@': '/src',
+      '@components': '/src/components',
+      '@hooks': '/src/hooks',
+      '@utils': '/src/utils',
+      '@styles': '/src/styles',
+      '@contexts': '/src/contexts'
+    }
   },
   test: {
     environment: 'jsdom',
