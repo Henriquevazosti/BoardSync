@@ -1,23 +1,52 @@
 import React, { useState } from 'react';
+import MediaUpload from '../MediaUpload/MediaUpload';
+import MediaViewer from '../MediaViewer/MediaViewer';
 import './Comments.css';
 
 const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteComment }) => {
   const [newComment, setNewComment] = useState('');
   const [isAddingComment, setIsAddingComment] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (newComment.trim() && currentUser) {
+    if ((!newComment.trim() && selectedFiles.length === 0) || !currentUser || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Processar anexos se houver
+      const attachments = selectedFiles.map(file => ({
+        id: file.id,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        mimeType: file.mimeType,
+        url: file.url, // Em um app real, seria o URL após upload para servidor
+        uploadDate: new Date().toISOString()
+      }));
+
       const comment = {
         id: Date.now().toString(),
         text: newComment.trim(),
         author: currentUser,
         timestamp: new Date().toISOString(),
-        cardId: cardId
+        cardId: cardId,
+        attachments: attachments.length > 0 ? attachments : undefined
       };
+
       onAddComment(comment);
       setNewComment('');
+      setSelectedFiles([]);
       setIsAddingComment(false);
+    } catch (error) {
+      console.error('Erro ao adicionar comentário:', error);
+      alert('Erro ao adicionar comentário. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -40,6 +69,20 @@ const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteCo
 
   const canDeleteComment = (comment) => {
     return currentUser && (currentUser.id === comment.author.id || currentUser.role === 'admin');
+  };
+
+  const handleFilesSelected = (files) => {
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const handleRemoveFile = (fileId) => {
+    setSelectedFiles(prev => prev.filter(file => file.id !== fileId));
+  };
+
+  const handleCancelComment = () => {
+    setNewComment('');
+    setSelectedFiles([]);
+    setIsAddingComment(false);
   };
 
   return (
@@ -99,6 +142,14 @@ const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteCo
               <div className="comment-text">
                 {comment.text}
               </div>
+              
+              {/* Exibir anexos de mídia */}
+              {comment.attachments && comment.attachments.length > 0 && (
+                <MediaViewer 
+                  attachments={comment.attachments} 
+                  compact={true}
+                />
+              )}
             </div>
           ))
         )}
@@ -116,32 +167,42 @@ const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteCo
             >
               {currentUser?.avatar}
             </div>
-            <textarea
-              className="comment-input"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Escreva seu comentário..."
-              rows="3"
-              autoFocus
-            />
+            <div className="comment-input-container">
+              <textarea
+                className="comment-input"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Escreva seu comentário..."
+                rows="3"
+                autoFocus
+                disabled={isSubmitting}
+              />
+              
+              {/* Upload de mídia */}
+              <MediaUpload
+                onFilesSelected={handleFilesSelected}
+                selectedFiles={selectedFiles}
+                onRemoveFile={handleRemoveFile}
+                disabled={isSubmitting}
+              />
+            </div>
           </div>
+          
           <div className="comment-actions">
             <button
               type="button"
               className="btn-cancel"
-              onClick={() => {
-                setNewComment('');
-                setIsAddingComment(false);
-              }}
+              onClick={handleCancelComment}
+              disabled={isSubmitting}
             >
               Cancelar
             </button>
             <button
               type="submit"
               className="btn-submit"
-              disabled={!newComment.trim()}
+              disabled={(!newComment.trim() && selectedFiles.length === 0) || isSubmitting}
             >
-              Comentar
+              {isSubmitting ? 'Enviando...' : 'Comentar'}
             </button>
           </div>
         </form>
