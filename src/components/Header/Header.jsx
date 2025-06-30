@@ -2,7 +2,7 @@ import React from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import './Header.css';
 
-const Header = ({ user, onManageLabels, onManageUsers, onManageThemes, onViewActivities, onOpenTeamChat, onLogout }) => {
+const Header = ({ user, onManageLabels, onManageUsers, onManageThemes, onViewActivities, onOpenTeamChat, onManageData, onLogout }) => {
   return (
     <header className="header">
       <div className="header-content">
@@ -42,6 +42,13 @@ const Header = ({ user, onManageLabels, onManageUsers, onManageThemes, onViewAct
             title="Chat da Equipe"
           >
             💬 Chat
+          </button>
+          <button 
+            className="header-btn"
+            onClick={onManageData}
+            title="Exportar/Importar Dados"
+          >
+            💾 Dados
           </button>
           
           <div className="user-info">

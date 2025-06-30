@@ -15,6 +15,7 @@ import CardDetailView from './components/CardDetailView/CardDetailView';
 import TeamChat from './components/TeamChat/TeamChat';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
+import DataManager from './components/DataManager/DataManager';
 import { 
   initialData, 
   getSubtasks, 
@@ -54,6 +55,7 @@ function App() {
   const [selectedCardForDetail, setSelectedCardForDetail] = useState(null);
   const [isTeamChatOpen, setIsTeamChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
+  const [isDataManagerOpen, setIsDataManagerOpen] = useState(false);
 
   // Funções de autenticação
   const handleLogin = (userData) => {
@@ -81,6 +83,7 @@ function App() {
     setIsThemeSelectorOpen(false);
     setIsActivityLogOpen(false);
     setActivityLogCardId(null);
+    setIsDataManagerOpen(false);
   };
 
   const goToLogin = () => {
@@ -123,6 +126,47 @@ function App() {
         [activity.id]: activity
       }
     }));
+  };
+
+  // Função para importar dados
+  const handleImportData = (importedData) => {
+    try {
+      // Validar se os dados importados são válidos
+      if (!importedData || typeof importedData !== 'object') {
+        throw new Error('Dados importados são inválidos');
+      }
+
+      // Aplicar os dados importados
+      setData(importedData);
+
+      // Registrar atividade de importação
+      if (user && user.id) {
+        const activity = createActivity(
+          'system',
+          user.id,
+          'data_imported',
+          'Dados importados do arquivo JSON',
+          null,
+          { timestamp: new Date().toISOString() }
+        );
+        
+        // Adicionar a atividade aos dados importados
+        setData(prevData => ({
+          ...prevData,
+          activities: {
+            ...prevData.activities,
+            [activity.id]: activity
+          }
+        }));
+      }
+
+      // Fechar o modal após importação bem-sucedida
+      setIsDataManagerOpen(false);
+      
+    } catch (error) {
+      console.error('Erro ao processar dados importados:', error);
+      throw error; // Re-throw para que o componente DataManager possa lidar com o erro
+    }
   };
 
   const moveCard = (cardId, sourceColumnId, targetColumnId) => {
@@ -686,6 +730,7 @@ function App() {
         onManageThemes={handleManageThemes}
         onViewActivities={handleViewAllActivities}
         onOpenTeamChat={handleOpenTeamChat}
+        onManageData={() => setIsDataManagerOpen(true)}
         onLogout={handleLogout}
       />
       <div className="board">
@@ -854,6 +899,16 @@ function App() {
           allUsers={data.users}
           messages={chatMessages}
           onSendMessage={handleSendChatMessage}
+        />
+      )}
+
+      {isDataManagerOpen && (
+        <DataManager
+          isOpen={isDataManagerOpen}
+          onClose={() => setIsDataManagerOpen(false)}
+          data={data}
+          onImportData={handleImportData}
+          user={user}
         />
       )}
     </div>

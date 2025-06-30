@@ -594,7 +594,9 @@ export const getActivityIcon = (type) => {
     title_changed: '📋',
     category_changed: '📂',
     completed: '✅',
-    reopened: '🔄'
+    reopened: '🔄',
+    data_imported: '📥',
+    data_exported: '📤'
   };
   return icons[type] || '📌';
 };
@@ -642,6 +644,10 @@ export const getActivityDescription = (activity, users, cards) => {
       return `${userName} marcou o card como concluído`;
     case 'reopened':
       return `${userName} reabriu o card`;
+    case 'data_imported':
+      return `${userName} importou dados do board`;
+    case 'data_exported':
+      return `${userName} exportou dados do board`;
     default:
       return `${userName} ${activity.description}`;
   }
@@ -667,5 +673,7 @@ export const activityTypes = {
   REOPENED: 'reopened',
   COMMENT_ADDED: 'comment_added',
   COMMENT_DELETED: 'comment_deleted',
-  CHAT_MESSAGE: 'chat_message'
+  CHAT_MESSAGE: 'chat_message',
+  DATA_IMPORTED: 'data_imported',
+  DATA_EXPORTED: 'data_exported'
 };
