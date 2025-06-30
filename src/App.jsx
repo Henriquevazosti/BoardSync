@@ -76,6 +76,7 @@ function App() {
     setIsModalOpen(false);
     setSelectedColumn(null);
     setSelectedCategories([]);
+    setSelectedDateFilters([]); // Bug corrigido: resetar filtros de data
     setIsBlockModalOpen(false);
     setSelectedCardForBlock(null);
     setIsLabelManagerOpen(false);
@@ -84,6 +85,14 @@ function App() {
     setIsActivityLogOpen(false);
     setActivityLogCardId(null);
     setIsDataManagerOpen(false);
+    setIsFiltersMinimized(false); // Bug corrigido: resetar estado dos filtros
+    setIsCommentsModalOpen(false); // Bug corrigido: fechar modal de comentários
+    setSelectedCardForComments(null);
+    setComments([]); // Bug corrigido: limpar comentários
+    setIsCardDetailOpen(false); // Bug corrigido: fechar detalhes do card
+    setSelectedCardForDetail(null);
+    setIsTeamChatOpen(false); // Bug corrigido: fechar chat
+    setChatMessages([]); // Bug corrigido: limpar mensagens do chat
   };
 
   const goToLogin = () => {
@@ -195,16 +204,11 @@ function App() {
           console.log(`Moving parent card with ${subtaskIds.length} subtasks:`, subtaskIds);
         }
       } else if (isSubtaskCard && movedCard.parentId) {
-        // Se for uma subtarefa, mover o card pai e todas as subtarefas relacionadas
-        const parentId = movedCard.parentId;
-        cardsToMove.push(parentId);
+        // Para subtarefas, mover apenas a subtarefa individual
+        // Não é necessário mover o card pai junto
+        cardsToMove.push(cardId);
         
-        // Obter todas as subtarefas do mesmo pai
-        const allSubtasks = getSubtasks(parentId, newData.cards);
-        const allSubtaskIds = allSubtasks.map(subtask => subtask.id);
-        cardsToMove.push(...allSubtaskIds);
-        
-        console.log(`Moving subtask triggered parent move. Moving parent ${parentId} with all ${allSubtaskIds.length} subtasks`);
+        console.log(`Moving individual subtask ${cardId} independently from parent`);
       } else {
         // Card sem relações, mover apenas ele
         cardsToMove.push(cardId);
@@ -641,17 +645,22 @@ function App() {
     
     // Adicionar atividade de comentário
     const activity = createActivity(
+      comment.cardId,
+      user.id,
       activityTypes.COMMENT_ADDED,
-      user,
+      'Comentário adicionado',
+      null,
       { 
-        cardId: comment.cardId,
         cardTitle: selectedCardForComments?.title || 'Card',
         commentText: comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text
       }
     );
     setData(prev => ({
       ...prev,
-      activities: [activity, ...prev.activities]
+      activities: {
+        ...prev.activities,
+        [activity.id]: activity
+      }
     }));
   };
 
@@ -662,17 +671,22 @@ function App() {
       
       // Adicionar atividade de remoção de comentário
       const activity = createActivity(
+        comment.cardId,
+        user.id,
         activityTypes.COMMENT_DELETED,
-        user,
+        'Comentário removido',
+        null,
         { 
-          cardId: comment.cardId,
           cardTitle: selectedCardForComments?.title || 'Card',
           commentText: comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text
         }
       );
       setData(prev => ({
         ...prev,
-        activities: [activity, ...prev.activities]
+        activities: {
+          ...prev.activities,
+          [activity.id]: activity
+        }
       }));
     }
   };
@@ -766,9 +780,19 @@ function App() {
           {data.columnOrder.map((columnId) => {
             const column = data.columns[columnId];
             const allCards = column.cardIds.map(cardId => data.cards[cardId]);
-            const filteredCards = getFilteredCards().filter(card => 
-              allCards.some(c => c.id === card.id)
-            );
+            
+            // Aplicar filtros apenas nos cards desta coluna
+            let filteredCards = allCards;
+            
+            // Aplicar filtros de categoria
+            if (selectedCategories.length > 0) {
+              filteredCards = filteredCards.filter(card => 
+                selectedCategories.includes(card.category)
+              );
+            }
+            
+            // Aplicar filtros de data
+            filteredCards = filterCardsByDate(filteredCards);
 
             return (
               <Column

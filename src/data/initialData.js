@@ -143,7 +143,7 @@ export const initialData = {
       blockReason: '',
       labels: ['label-1', 'label-2'],
       assignedUsers: ['user-1', 'user-2'],
-      dueDate: '2025-07-05T23:59:59.999Z',
+      dueDate: '2025-06-28T23:59:59.999Z', // Data vencida para teste
       createdAt: '2025-06-20T10:00:00.000Z',
       completedAt: null
     },

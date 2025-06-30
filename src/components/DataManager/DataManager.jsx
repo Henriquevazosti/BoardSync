@@ -89,13 +89,37 @@ const DataManager = ({
       const requiredProperties = ['users', 'cards', 'columns', 'columnOrder'];
       for (const prop of requiredProperties) {
         if (!boardData[prop]) {
-          throw new Error(`Formato de dados inválido: propriedade "${prop}" não encontrada`);
+          throw new Error(`Formato de dados inválido: propriedade obrigatória "${prop}" não encontrada`);
         }
       }
 
-      // Validar estrutura das colunas
-      if (!Array.isArray(boardData.columnOrder) || Object.keys(boardData.columns).length === 0) {
-        throw new Error('Dados de colunas inválidos');
+      // Validar tipos específicos
+      if (!Array.isArray(boardData.columnOrder)) {
+        throw new Error('Formato de dados inválido: "columnOrder" deve ser um array');
+      }
+
+      if (typeof boardData.columns !== 'object' || Array.isArray(boardData.columns)) {
+        throw new Error('Formato de dados inválido: "columns" deve ser um objeto');
+      }
+
+      if (typeof boardData.cards !== 'object' || Array.isArray(boardData.cards)) {
+        throw new Error('Formato de dados inválido: "cards" deve ser um objeto');
+      }
+
+      if (typeof boardData.users !== 'object' || Array.isArray(boardData.users)) {
+        throw new Error('Formato de dados inválido: "users" deve ser um objeto');
+      }
+
+      // Validar se há pelo menos uma coluna
+      if (Object.keys(boardData.columns).length === 0) {
+        throw new Error('Dados inválidos: é necessário ter pelo menos uma coluna');
+      }
+
+      // Validar integridade dos IDs das colunas
+      const columnIds = Object.keys(boardData.columns);
+      const missingColumns = boardData.columnOrder.filter(id => !columnIds.includes(id));
+      if (missingColumns.length > 0) {
+        throw new Error(`Dados inconsistentes: colunas referenciadas em "columnOrder" não encontradas: ${missingColumns.join(', ')}`);
       }
 
       // Preparar dados com propriedades opcionais
