@@ -154,17 +154,6 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onOpenCardDetail,
         <p className="card-description">{card.description}</p>
       )}
 
-      {/* Indicador de anexos */}
-      {card.attachments && card.attachments.length > 0 && (
-        <div className="card-attachments-indicator">
-          <span className="attachment-icon">📎</span>
-          <span className="attachment-count">{card.attachments.length}</span>
-          <span className="attachment-text">
-            {card.attachments.length === 1 ? 'anexo' : 'anexos'}
-          </span>
-        </div>
-      )}
-
       {cardLabels.length > 0 && (
         <div className="card-labels">
           {cardLabels.map((label) => (
