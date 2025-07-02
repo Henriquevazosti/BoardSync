@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useCallback } from 'react';
 import Card from '../Card/Card';
-import './Column.css';
+import './ColumnVirtualized.css';
 
 const Column = memo(({ 
   column, 

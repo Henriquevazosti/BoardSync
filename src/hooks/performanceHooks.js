@@ -67,9 +67,10 @@ export const usePerformanceMonitor = (componentName) => {
     renderCount.current += 1;
     const renderTime = Date.now() - renderStartTime.current;
     
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🔍 ${componentName} - Render #${renderCount.current} took ${renderTime}ms`);
-    }
+    // Desabilitado temporariamente para evitar spam de logs
+    // if (process.env.NODE_ENV === 'development') {
+    //   console.log(`🔍 ${componentName} - Render #${renderCount.current} took ${renderTime}ms`);
+    // }
     
     renderStartTime.current = Date.now();
   });

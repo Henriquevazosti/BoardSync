@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import Card from '../Card/Card';
 import VirtualList from '../VirtualList/VirtualList';
-import './Column.css';
+import './ColumnVirtualized.css';
 
 const VIRTUAL_THRESHOLD = 20; // Usar virtualização quando há mais de 20 cards
 

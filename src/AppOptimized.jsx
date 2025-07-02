@@ -88,8 +88,8 @@ const BoardContent = React.memo(() => {
   }, [data?.cards]);
 
   // Debounce para filtros para evitar re-renders excessivos
-  const debouncedCategories = useDebounce(selectedCategories, 300);
-  const debouncedDateFilters = useDebounce(selectedDateFilters, 300);
+  // const debouncedCategories = useDebounce(selectedCategories, 300);
+  // const debouncedDateFilters = useDebounce(selectedDateFilters, 300);
 
   // Memoizar handlers para evitar re-renders desnecessários
   const handlers = useMemo(() => ({
@@ -298,13 +298,34 @@ const BoardContent = React.memo(() => {
     <div className="app">
       <Header 
         user={user}
-        onManageLabels={() => dispatch(actions.toggleModal('isLabelManagerOpen', true))}
-        onManageUsers={() => dispatch(actions.toggleModal('isUserManagerOpen', true))}
-        onManageThemes={() => dispatch(actions.toggleModal('isThemeSelectorOpen', true))}
-        onViewActivities={() => dispatch(actions.toggleModal('isActivityLogOpen', true))}
-        onOpenTeamChat={() => dispatch(actions.toggleModal('isTeamChatOpen', true))}
-        onManageData={() => dispatch(actions.toggleModal('isDataManagerOpen', true))}
-        onLogout={() => dispatch(actions.logout())}
+        onManageLabels={() => {
+          console.log('📋 onManageLabels chamado');
+          dispatch(actions.toggleModal('isLabelManagerOpen', true));
+        }}
+        onManageUsers={() => {
+          console.log('👥 onManageUsers chamado');
+          dispatch(actions.toggleModal('isUserManagerOpen', true));
+        }}
+        onManageThemes={() => {
+          console.log('🎨 onManageThemes chamado');
+          dispatch(actions.toggleModal('isThemeSelectorOpen', true));
+        }}
+        onViewActivities={() => {
+          console.log('📋 onViewActivities chamado');
+          dispatch(actions.toggleModal('isActivityLogOpen', true));
+        }}
+        onOpenTeamChat={() => {
+          console.log('💬 onOpenTeamChat chamado');
+          dispatch(actions.toggleModal('isTeamChatOpen', true));
+        }}
+        onManageData={() => {
+          console.log('💾 onManageData chamado');
+          dispatch(actions.toggleModal('isDataManagerOpen', true));
+        }}
+        onLogout={() => {
+          console.log('🚪 onLogout chamado');
+          dispatch(actions.logout());
+        }}
       />
       
       <div className="board">
@@ -474,6 +495,16 @@ function App() {
   const [showPerformanceDashboard, setShowPerformanceDashboard] = React.useState(false);
   const [showPerformanceNotifications, setShowPerformanceNotifications] = React.useState(false); // Desabilitado temporariamente
 
+  // Teste de clique simples
+  React.useEffect(() => {
+    const testClick = () => {
+      console.log('🖱️ Clique global detectado!');
+    };
+    
+    document.addEventListener('click', testClick);
+    return () => document.removeEventListener('click', testClick);
+  }, []);
+
   // Atalho de teclado para toggle do dashboard (Ctrl+Shift+P)
   React.useEffect(() => {
     const handleKeyDown = (event) => {
@@ -496,7 +527,7 @@ function App() {
     <ThemeProvider>
       <AppProvider>
         <GlobalKeyboardHandler>
-          <div className="app-container gpu-accelerated">
+          <div className="app-container">
             <AuthWrapper />
             
             {/* Dashboard de Performance */}

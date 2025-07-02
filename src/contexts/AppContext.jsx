@@ -303,6 +303,43 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   
+  // Função getFilteredCards memoizada
+  const getFilteredCards = useCallback((columnId) => {
+    if (!state.data || !state.data.columns || !state.data.cards) {
+      return [];
+    }
+    
+    const column = state.data.columns[columnId];
+    if (!column || !column.cardIds) return [];
+    
+    return column.cardIds
+      .map(cardId => state.data.cards[cardId])
+      .filter(card => {
+        if (!card) return false;
+        
+        // Filtro por categoria
+        if (state.selectedCategories.length > 0) {
+          if (!state.selectedCategories.includes(card.category)) {
+            return false;
+          }
+        }
+        
+        // Filtro por data
+        if (state.selectedDateFilters.length > 0) {
+          const hasOverdue = state.selectedDateFilters.includes('overdue') && card.dueDate && new Date(card.dueDate) < new Date();
+          const hasDueToday = state.selectedDateFilters.includes('dueToday') && card.dueDate && new Date(card.dueDate).toDateString() === new Date().toDateString();
+          const hasDueSoon = state.selectedDateFilters.includes('dueSoon') && card.dueDate && new Date(card.dueDate) <= new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+          const hasNoDueDate = state.selectedDateFilters.includes('noDueDate') && !card.dueDate;
+          
+          if (!hasOverdue && !hasDueToday && !hasDueSoon && !hasNoDueDate) {
+            return false;
+          }
+        }
+        
+        return true;
+      });
+  }, [state.data, state.selectedCategories, state.selectedDateFilters]);
+  
   // Seletores memoizados para otimizar re-renders
   const selectors = useMemo(() => ({
     // Dados básicos
@@ -311,41 +348,7 @@ export const AppProvider = ({ children }) => {
     data: state.data,
     
     // Cards filtrados (memoizado)
-    getFilteredCards: (columnId) => {
-      if (!state.data || !state.data.columns || !state.data.cards) {
-        return [];
-      }
-      
-      const column = state.data.columns[columnId];
-      if (!column || !column.cardIds) return [];
-      
-      return column.cardIds
-        .map(cardId => state.data.cards[cardId])
-        .filter(card => {
-          if (!card) return false;
-          
-          // Filtro por categoria
-          if (state.selectedCategories.length > 0) {
-            if (!state.selectedCategories.includes(card.category)) {
-              return false;
-            }
-          }
-          
-          // Filtro por data
-          if (state.selectedDateFilters.length > 0) {
-            const hasOverdue = state.selectedDateFilters.includes('overdue') && card.dueDate && new Date(card.dueDate) < new Date();
-            const hasDueToday = state.selectedDateFilters.includes('dueToday') && card.dueDate && new Date(card.dueDate).toDateString() === new Date().toDateString();
-            const hasDueSoon = state.selectedDateFilters.includes('dueSoon') && card.dueDate && new Date(card.dueDate) <= new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-            const hasNoDueDate = state.selectedDateFilters.includes('noDueDate') && !card.dueDate;
-            
-            if (!hasOverdue && !hasDueToday && !hasDueSoon && !hasNoDueDate) {
-              return false;
-            }
-          }
-          
-          return true;
-        });
-    },
+    getFilteredCards,
     
     // Estados de filtros
     selectedCategories: state.selectedCategories,
@@ -374,7 +377,31 @@ export const AppProvider = ({ children }) => {
     // Comentários
     comments: state.comments,
     getCardComments: (cardId) => state.comments.filter(comment => comment.cardId === cardId)
-  }), [state]);
+  }), [
+    state.user, 
+    state.currentPage, 
+    state.data,
+    getFilteredCards,
+    state.selectedCategories,
+    state.selectedDateFilters,
+    state.isModalOpen,
+    state.selectedColumn,
+    state.isBlockModalOpen,
+    state.selectedCardForBlock,
+    state.isLabelManagerOpen,
+    state.isUserManagerOpen,
+    state.isThemeSelectorOpen,
+    state.isActivityLogOpen,
+    state.activityLogCardId,
+    state.isCommentsModalOpen,
+    state.selectedCardForComments,
+    state.isCardDetailOpen,
+    state.selectedCardForDetail,
+    state.isTeamChatOpen,
+    state.isDataManagerOpen,
+    state.isFiltersMinimized,
+    state.comments
+  ]);
   
   const value = useMemo(() => ({
     ...selectors,
