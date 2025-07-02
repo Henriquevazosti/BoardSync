@@ -16,6 +16,7 @@ import TeamChat from './components/TeamChat/TeamChat';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import DataManager from './components/DataManager/DataManager';
+import AddListButton from './components/AddListButton/AddListButton';
 import { 
   initialData, 
   getSubtasks, 
@@ -485,11 +486,11 @@ function App() {
     return filteredCards;
   };
 
-  const handleAddColumn = () => {
+  const handleAddColumn = (columnTitle = 'Nova Lista') => {
     const newColumnId = `column-${Date.now()}`;
     const newColumn = {
       id: newColumnId,
-      title: 'Nova Lista',
+      title: columnTitle,
       cardIds: [],
     };
 
@@ -764,6 +765,64 @@ function App() {
     return null;
   };
 
+  const handleEditColumn = (columnId, newTitle) => {
+    setData(prevData => ({
+      ...prevData,
+      columns: {
+        ...prevData.columns,
+        [columnId]: {
+          ...prevData.columns[columnId],
+          title: newTitle
+        }
+      }
+    }));
+  };
+
+  const handleDeleteColumn = (columnId) => {
+    // Impedir exclusão da última coluna
+    if (data.columnOrder.length <= 1) {
+      alert('Não é possível excluir a última lista. O board deve ter pelo menos uma lista.');
+      return;
+    }
+
+    setData(prevData => {
+      const columnToDelete = prevData.columns[columnId];
+      const cardsInColumn = columnToDelete.cardIds;
+      
+      // Se há cards na coluna, mover para a primeira coluna disponível
+      if (cardsInColumn.length > 0) {
+        const remainingColumns = prevData.columnOrder.filter(id => id !== columnId);
+        if (remainingColumns.length > 0) {
+          const firstColumnId = remainingColumns[0];
+          const updatedColumns = {
+            ...prevData.columns,
+            [firstColumnId]: {
+              ...prevData.columns[firstColumnId],
+              cardIds: [...prevData.columns[firstColumnId].cardIds, ...cardsInColumn]
+            }
+          };
+          delete updatedColumns[columnId];
+
+          return {
+            ...prevData,
+            columns: updatedColumns,
+            columnOrder: remainingColumns
+          };
+        }
+      }
+
+      // Se não há cards ou não há outras colunas, apenas excluir
+      const updatedColumns = { ...prevData.columns };
+      delete updatedColumns[columnId];
+
+      return {
+        ...prevData,
+        columns: updatedColumns,
+        columnOrder: prevData.columnOrder.filter(id => id !== columnId)
+      };
+    });
+  };
+
   return (
     <div className="app">
       <Header 
@@ -832,6 +891,7 @@ function App() {
                 allCards={data.cards}
                 allLabels={data.labels}
                 allUsers={data.users}
+                totalColumns={data.columnOrder.length}
                 onAddCard={handleAddCard}
                 onMoveCard={moveCard}
                 onOpenCardDetail={handleOpenCardDetail}
@@ -839,12 +899,12 @@ function App() {
                 onManageLabels={handleManageLabels}
                 onViewActivityLog={handleViewActivityLog}
                 onViewComments={handleViewComments}
+                onEditColumn={handleEditColumn}
+                onDeleteColumn={handleDeleteColumn}
               />
             );
           })}
-          <button className="add-list-button" onClick={handleAddColumn}>
-            + Adicionar outra lista
-          </button>
+          <AddListButton onAddColumn={handleAddColumn} />
         </div>
       </div>
 
