@@ -16,6 +16,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+}
+
+.column-title-section {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  position: relative;
 }
 
 .column-title {
@@ -24,6 +32,80 @@
   color: var(--color-textPrimary);
   margin: 0;
   flex: 1;
+  cursor: pointer;
+}
+
+.column-title-input {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-textPrimary);
+  background: white;
+  border: 2px solid #0052cc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 0;
+  flex: 1;
+  outline: none;
+}
+
+.column-actions-toggle {
+  background: none;
+  border: none;
+  color: var(--color-textSecondary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 16px;
+  line-height: 1;
+  margin-left: 8px;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.column-header:hover .column-actions-toggle {
+  opacity: 1;
+}
+
+.column-actions-toggle:hover {
+  background: var(--color-borderLight);
+  color: var(--color-textPrimary);
+}
+
+.column-actions-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 120px;
+  overflow: hidden;
+}
+
+.column-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: var(--color-textPrimary);
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  transition: background-color 0.2s ease;
+}
+
+.column-action-btn:hover {
+  background: var(--color-borderLight);
+}
+
+.column-action-btn.delete-btn:hover {
+  background: #ffebee;
+  color: #d32f2f;
 }
 
 .column-counts {

@@ -1,0 +1,177 @@
+/* Botão de adicionar lista */
+.add-list-button {
+  background: var(--color-columnBackground, #f1f3f4);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--border-radius-base, 8px);
+  color: var(--color-textSecondary, #6c757d);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 4px;
+  min-width: 272px;
+  padding: 12px;
+  text-align: left;
+  transition: all var(--animation-duration, 0.2s) ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-list-button:hover {
+  background: var(--color-cardBackground, #ffffff);
+  border-color: var(--color-primary, #007bff);
+  color: var(--color-textPrimary, #333);
+}
+
+.add-list-icon {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.add-list-text {
+  flex: 1;
+}
+
+/* Container do modo de edição */
+.add-list-editing {
+  background: var(--color-cardBackground, #ffffff);
+  border: 1px solid var(--color-primary, #007bff);
+  border-radius: var(--border-radius-base, 8px);
+  margin: 0 4px;
+  min-width: 272px;
+  padding: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Input para nome da lista */
+.add-list-input {
+  width: 100%;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--border-radius-small, 4px);
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--color-inputBackground, #ffffff);
+  color: var(--color-textPrimary, #333);
+  margin-bottom: 8px;
+  transition: border-color var(--animation-duration, 0.2s) ease;
+}
+
+.add-list-input:focus {
+  outline: none;
+  border-color: var(--color-primary, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.add-list-input::placeholder {
+  color: var(--color-textSecondary, #6c757d);
+}
+
+/* Ações do modo de edição */
+.add-list-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Botão de confirmar */
+.confirm-btn {
+  background: var(--color-primary, #007bff);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-small, 4px);
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--animation-duration, 0.2s) ease;
+  flex: 1;
+}
+
+.confirm-btn:hover:not(:disabled) {
+  background: var(--color-primaryDark, #0056b3);
+  transform: translateY(-1px);
+}
+
+.confirm-btn:disabled {
+  background: var(--color-disabled, #6c757d);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Botão de cancelar */
+.cancel-btn {
+  background: none;
+  border: none;
+  color: var(--color-textSecondary, #6c757d);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 8px;
+  border-radius: var(--border-radius-small, 4px);
+  transition: all var(--animation-duration, 0.2s) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.cancel-btn:hover {
+  background: var(--color-dangerLight, #f8d7da);
+  color: var(--color-danger, #dc3545);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .add-list-button,
+  .add-list-editing {
+    min-width: 250px;
+    margin: 0 2px;
+  }
+  
+  .add-list-button {
+    padding: 10px;
+    font-size: 13px;
+  }
+  
+  .add-list-input {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .confirm-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Tema escuro */
+@media (prefers-color-scheme: dark) {
+  .add-list-button {
+    background: var(--color-columnBackground, #2d3748);
+    border-color: var(--color-border, #4a5568);
+    color: var(--color-textSecondary, #a0aec0);
+  }
+  
+  .add-list-button:hover {
+    background: var(--color-cardBackground, #1a202c);
+    border-color: var(--color-primary, #3182ce);
+    color: var(--color-textPrimary, #e2e8f0);
+  }
+  
+  .add-list-editing {
+    background: var(--color-cardBackground, #1a202c);
+    border-color: var(--color-primary, #3182ce);
+  }
+  
+  .add-list-input {
+    background: var(--color-inputBackground, #2d3748);
+    border-color: var(--color-border, #4a5568);
+    color: var(--color-textPrimary, #e2e8f0);
+  }
+  
+  .add-list-input:focus {
+    border-color: var(--color-primary, #3182ce);
+  }
+}

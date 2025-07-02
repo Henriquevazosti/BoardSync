@@ -1,8 +1,79 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Card from '../Card/Card';
 import './Column.css';
 
-const Column = ({ column, cards, totalCards, allCards, allLabels, allUsers, onAddCard, onMoveCard, onOpenCardDetail, onBlockCard, onManageLabels, onViewActivityLog, onViewComments }) => {
+const Column = ({ column, cards, totalCards, allCards, allLabels, allUsers, totalColumns, onAddCard, onMoveCard, onOpenCardDetail, onBlockCard, onManageLabels, onViewActivityLog, onViewComments, onEditColumn, onDeleteColumn }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(column.title);
+  const [showActions, setShowActions] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  // Fechar menu de ações quando clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showActions && !event.target.closest('.column-title-section')) {
+        setShowActions(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showActions]);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditValue(column.title);
+  };
+
+  const handleSave = () => {
+    const trimmedValue = editValue.trim();
+    if (trimmedValue && trimmedValue !== column.title) {
+      onEditColumn(column.id, trimmedValue);
+    }
+    setIsEditing(false);
+    setShowActions(false);
+  };
+
+  const handleCancel = () => {
+    setEditValue(column.title);
+    setIsEditing(false);
+    setShowActions(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancel();
+    }
+  };
+
+  const handleDelete = () => {
+    if (totalColumns <= 1) {
+      alert('Não é possível excluir a última lista. O board deve ter pelo menos uma lista.');
+      return;
+    }
+
+    if (cards.length > 0) {
+      if (confirm(`A lista "${column.title}" contém ${cards.length} card(s). Tem certeza que deseja excluí-la? Os cards serão movidos para a primeira lista.`)) {
+        onDeleteColumn(column.id);
+      }
+    } else {
+      if (confirm(`Tem certeza que deseja excluir a lista "${column.title}"?`)) {
+        onDeleteColumn(column.id);
+      }
+    }
+    setShowActions(false);
+  };
   const handleDragOver = (e) => {
     e.preventDefault();
     console.log('📍 Arrastando sobre a coluna:', column.title);
@@ -52,7 +123,49 @@ const Column = ({ column, cards, totalCards, allCards, allLabels, allUsers, onAd
       onDrop={handleDrop}
     >
       <div className="column-header">
-        <h3 className="column-title">{column.title}</h3>
+        <div className="column-title-section">
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              className="column-title-input"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleSave}
+              maxLength={50}
+            />
+          ) : (
+            <>
+              <h3 className="column-title">{column.title}</h3>
+              <button
+                className="column-actions-toggle"
+                onClick={() => setShowActions(!showActions)}
+                title="Opções da lista"
+              >
+                ⋯
+              </button>
+              {showActions && (
+                <div className="column-actions-menu">
+                  <button 
+                    className="column-action-btn edit-btn"
+                    onClick={handleEdit}
+                  >
+                    ✏️ Editar
+                  </button>
+                  {totalColumns > 1 && (
+                    <button 
+                      className="column-action-btn delete-btn"
+                      onClick={handleDelete}
+                    >
+                      🗑️ Excluir
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
         <div className="column-counts">
           {hasFilter && (
             <>

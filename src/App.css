@@ -23,28 +23,6 @@
   padding-bottom: 8px;
 }
 
-.add-list-button {
-  background: var(--color-columnBackground);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-base);
-  color: var(--color-textSecondary);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  margin: 0 4px;
-  min-width: 272px;
-  padding: 12px;
-  text-align: left;
-  transition: all var(--animation-duration) ease;
-  white-space: nowrap;
-}
-
-.add-list-button:hover {
-  background: var(--color-cardBackground);
-  border-color: var(--color-primary);
-  color: var(--color-textPrimary);
-}
-
 /* Scrollbar personalizada para o board */
 .board::-webkit-scrollbar {
   height: 8px;
