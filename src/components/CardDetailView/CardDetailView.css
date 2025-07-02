@@ -288,41 +288,52 @@
   box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
 }
 
-.edit-actions {
-  display: flex;
-  gap: 8px;
+.card-detail-edit-actions {
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  margin-top: 12px !important;
+  flex-wrap: nowrap !important;
+  position: relative !important;
 }
 
-.save-btn {
-  background: #0052cc;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+.card-detail-save-btn {
+  background: #0052cc !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
-.save-btn:hover {
-  background: #0065ff;
+.card-detail-save-btn:hover {
+  background: #0065ff !important;
 }
 
-.cancel-btn {
-  background: var(--color-borderLight);
-  color: var(--color-textSecondary);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.card-detail-cancel-btn {
+  background: var(--color-borderLight) !important;
+  color: var(--color-textSecondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 4px !important;
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
-.cancel-btn:hover {
-  background: var(--color-border);
-  color: var(--color-textPrimary);
+.card-detail-cancel-btn:hover {
+  background: var(--color-border) !important;
+  color: var(--color-textPrimary) !important;
 }
 
 /* Subtarefas */

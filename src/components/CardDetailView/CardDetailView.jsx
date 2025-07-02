@@ -308,15 +308,15 @@ const CardDetailView = ({
                     onChange={(newDescription) => setEditedCard(prev => ({ ...prev, description: newDescription }))}
                     placeholder="Adicione uma descrição mais detalhada..."
                   />
-                  <div className="edit-actions">
+                  <div className="card-detail-edit-actions">
                     <button 
-                      className="save-btn"
+                      className="card-detail-save-btn"
                       onClick={handleDescriptionSave}
                     >
                       Salvar
                     </button>
                     <button 
-                      className="cancel-btn"
+                      className="card-detail-cancel-btn"
                       onClick={() => {
                         setEditedCard(prev => ({ ...prev, description: card.description || '' }));
                         setIsEditingDescription(false);
