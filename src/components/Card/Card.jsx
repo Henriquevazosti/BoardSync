@@ -25,6 +25,60 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onOpenCardDetail,
     return categoryConfig[category] || categoryConfig.atividade;
   };
 
+  // Função para renderizar descrição do card com suporte a imagens
+  const renderCardDescription = (description) => {
+    if (!description) return null;
+
+    // Verificar se há imagens na descrição
+    const hasImages = description.includes('![') && description.includes('data:image');
+    
+    if (!hasImages) {
+      // Apenas texto - mostrar truncado
+      const truncatedText = description.length > 100 
+        ? description.substring(0, 100) + '...' 
+        : description;
+      return <span className="description-text">{truncatedText}</span>;
+    }
+
+    // Tem imagens - mostrar preview compacto
+    const imageRegex = /!\[([^\]]*)\]\((data:image[^)]+)\)/g;
+    const imageMatches = [...description.matchAll(imageRegex)];
+    
+    if (imageMatches.length > 0) {
+      // Pegar a primeira imagem
+      const firstImage = imageMatches[0];
+      const [, alt, src] = firstImage;
+      
+      // Pegar texto sem imagens para mostrar
+      let textOnly = description.replace(imageRegex, '').trim();
+      const truncatedText = textOnly.length > 60 
+        ? textOnly.substring(0, 60) + '...' 
+        : textOnly;
+
+      return (
+        <div className="card-description-with-media">
+          {truncatedText && (
+            <div className="description-text">{truncatedText}</div>
+          )}
+          <div className="description-image-preview">
+            <img 
+              src={src} 
+              alt={alt || 'Imagem'} 
+              className="card-image-thumbnail"
+            />
+            {imageMatches.length > 1 && (
+              <div className="more-images-indicator">
+                +{imageMatches.length - 1} imagem{imageMatches.length > 2 ? 's' : ''}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return <span className="description-text">{description}</span>;
+  };
+
   const isCardSubtask = isSubtask(card.category);
   const parentCard = isCardSubtask ? getParentCard(card.id, allCards) : null;
   const subtasks = !isCardSubtask ? getSubtasks(card.id, allCards) : [];
@@ -151,7 +205,9 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onOpenCardDetail,
       
       <h4 className="card-title">{card.title}</h4>
       {card.description && (
-        <p className="card-description">{card.description}</p>
+        <div className="card-description">
+          {renderCardDescription(card.description)}
+        </div>
       )}
 
       {card.attachments && card.attachments.length > 0 && (

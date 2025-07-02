@@ -83,6 +83,20 @@ const CardDetailView = ({
   const renderDescription = (description) => {
     if (!description) return 'Adicione uma descrição mais detalhada...';
 
+    // Limpar HTML que pode ter escapado do editor
+    let cleanDescription = description;
+    
+    // Se contém HTML do editor, extrair apenas o conteúdo útil
+    if (cleanDescription.includes('<div class="editor-image-container"')) {
+      // Converter HTML do editor de volta para markdown temporariamente
+      cleanDescription = cleanDescription.replace(
+        /<div class="editor-image-container"[^>]*><img src="([^"]*)" alt="([^"]*)"[^>]*><button[^>]*>×<\/button><\/div>/g,
+        '![$2]($1)'
+      );
+      // Limpar outras tags HTML
+      cleanDescription = cleanDescription.replace(/<[^>]*>/g, '');
+    }
+
     // Dividir o texto em partes usando regex para capturar imagens
     const imageRegex = /!\[([^\]]*)\]\((data:image[^)]+)\)/g;
     const parts = [];
@@ -90,10 +104,10 @@ const CardDetailView = ({
     let match;
 
     // Encontrar todas as imagens e criar array de partes
-    while ((match = imageRegex.exec(description)) !== null) {
+    while ((match = imageRegex.exec(cleanDescription)) !== null) {
       // Adicionar texto antes da imagem
       if (match.index > lastIndex) {
-        const textBefore = description.substring(lastIndex, match.index);
+        const textBefore = cleanDescription.substring(lastIndex, match.index);
         if (textBefore.trim()) {
           parts.push({
             type: 'text',
@@ -113,8 +127,8 @@ const CardDetailView = ({
     }
 
     // Adicionar texto restante
-    if (lastIndex < description.length) {
-      const textAfter = description.substring(lastIndex);
+    if (lastIndex < cleanDescription.length) {
+      const textAfter = cleanDescription.substring(lastIndex);
       if (textAfter.trim()) {
         parts.push({
           type: 'text',
@@ -127,7 +141,7 @@ const CardDetailView = ({
     if (parts.length === 0) {
       return (
         <div className="description-text">
-          {description.split('\n').map((line, i) => (
+          {cleanDescription.split('\n').map((line, i) => (
             <div key={i}>
               {line || <br />}
             </div>

@@ -6,6 +6,37 @@ const DescriptionEditor = ({ value, onChange, placeholder = "Descreva os detalhe
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // Função para normalizar conteúdo - garantir formato markdown limpo
+  const normalizeContent = (htmlContent) => {
+    if (!htmlContent) return '';
+    
+    let content = htmlContent;
+    
+    // Converter imagens HTML para markdown
+    content = content.replace(
+      /<div class="editor-image-container"[^>]*><img src="([^"]*)" alt="([^"]*)"[^>]*>(?:<button[^>]*>×<\/button>)?<\/div>/g,
+      (match, src, alt) => `![${alt}](${src})`
+    );
+    
+    // Converter elementos de formatação
+    content = content.replace(/<strong>(.*?)<\/strong>/g, '**$1**');
+    content = content.replace(/<em>(.*?)<\/em>/g, '*$1*');
+    content = content.replace(/<br\s*\/?>/g, '\n');
+    
+    // Converter divs para quebras de linha
+    content = content.replace(/<div[^>]*>/g, '\n');
+    content = content.replace(/<\/div>/g, '');
+    
+    // Remover outras tags HTML
+    content = content.replace(/<[^>]*>/g, '');
+    
+    // Limpar espaços e quebras de linha excessivas
+    content = content.replace(/\n\s*\n\s*\n/g, '\n\n');
+    content = content.replace(/^\s+|\s+$/g, '');
+    
+    return content;
+  };
+
   // Função para processar imagens
   const processImage = (file) => {
     if (!file.type.startsWith('image/')) {
@@ -103,9 +134,8 @@ const DescriptionEditor = ({ value, onChange, placeholder = "Descreva os detalhe
   const updateContent = () => {
     const editor = editorRef.current;
     if (editor) {
-      // Converter o HTML do editor para markdown-like para o value
-      const content = editor.innerHTML;
-      onChange(content);
+      const normalizedContent = normalizeContent(editor.innerHTML);
+      onChange(normalizedContent);
     }
   };
 
@@ -159,24 +189,37 @@ const DescriptionEditor = ({ value, onChange, placeholder = "Descreva os detalhe
     fileInputRef.current?.click();
   };
 
+  // Função para converter markdown para HTML para exibição no editor
+  const markdownToHTML = (markdown) => {
+    if (!markdown) return '';
+    
+    let html = markdown;
+    
+    // Converter imagens markdown para HTML
+    html = html.replace(
+      /!\[([^\]]*)\]\((data:image[^)]+)\)/g,
+      (match, alt, src) => `
+        <div class="editor-image-container" style="margin: 12px 0; text-align: center; position: relative; display: block;">
+          <img src="${src}" alt="${alt}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); cursor: pointer; transition: transform 0.2s ease;" />
+          <button class="remove-image-btn" style="position: absolute; top: 8px; right: 8px; background: rgba(220, 53, 69, 0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 16px; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center;">×</button>
+        </div>
+      `
+    );
+    
+    // Converter formatação de texto
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // Converter quebras de linha
+    html = html.replace(/\n/g, '<br>');
+    
+    return html;
+  };
+
   // Renderizar o conteúdo no editor
   const renderEditorContent = () => {
     if (!value) return '';
-    
-    // Se o value contém imagens em markdown, converter para HTML
-    if (value.includes('![') && value.includes('data:image')) {
-      return value.replace(
-        /!\[([^\]]*)\]\((data:image[^)]+)\)/g,
-        (match, alt, src) => `
-          <div class="editor-image-container" style="margin: 12px 0; text-align: center; position: relative; display: block;">
-            <img src="${src}" alt="${alt}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); cursor: pointer; transition: transform 0.2s ease;" />
-            <button class="remove-image-btn" style="position: absolute; top: 8px; right: 8px; background: rgba(220, 53, 69, 0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 16px; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center;">×</button>
-          </div>
-        `
-      );
-    }
-    
-    return value;
+    return markdownToHTML(value);
   };
 
   // Effect para sincronizar o conteúdo do editor
@@ -184,6 +227,28 @@ const DescriptionEditor = ({ value, onChange, placeholder = "Descreva os detalhe
     const editor = editorRef.current;
     if (editor && editor.innerHTML !== renderEditorContent()) {
       editor.innerHTML = renderEditorContent();
+      
+      // Adicionar event listeners para botões de remoção existentes
+      const removeButtons = editor.querySelectorAll('.remove-image-btn');
+      removeButtons.forEach(btn => {
+        const imgContainer = btn.closest('.editor-image-container');
+        if (imgContainer) {
+          // Adicionar hover events
+          imgContainer.addEventListener('mouseenter', () => {
+            btn.style.display = 'flex';
+          });
+          imgContainer.addEventListener('mouseleave', () => {
+            btn.style.display = 'none';
+          });
+          
+          // Adicionar click event para remoção
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            imgContainer.remove();
+            updateContent();
+          });
+        }
+      });
     }
   }, [value]);
 
@@ -270,16 +335,17 @@ const DescriptionEditor = ({ value, onChange, placeholder = "Descreva os detalhe
             className="editor-placeholder"
             style={{
               position: 'absolute',
-              top: '12px',
+              top: '60px',
               left: '12px',
               color: 'var(--color-textSecondary)',
               pointerEvents: 'none',
-              fontSize: '14px'
+              fontSize: '14px',
+              lineHeight: '1.4'
             }}
           >
             {placeholder}
             <br />
-            <small>Dica: Arraste imagens aqui, use Ctrl+V para colar, ou clique no botão 🖼️!</small>
+            <small>💡 Dica: Arraste imagens aqui, use Ctrl+V para colar, ou clique no botão 🖼️!</small>
           </div>
         )}
         
