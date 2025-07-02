@@ -3,6 +3,8 @@ import { categoryConfig, getMainCategories, getSubtaskCategories, isSubtask } fr
 import LabelSelector from '../LabelSelector/LabelSelector';
 import UserSelector from '../UserSelector/UserSelector';
 import DatePicker from '../DatePicker/DatePicker';
+import MediaUpload from '../MediaUpload/MediaUpload';
+import DescriptionEditor from '../DescriptionEditor/DescriptionEditor';
 import './NewCardModal.css';
 
 const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, onManageLabels }) => {
@@ -14,6 +16,7 @@ const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, on
   const [selectedLabels, setSelectedLabels] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [dueDate, setDueDate] = useState(null);
+  const [attachedFiles, setAttachedFiles] = useState([]);
 
   const mainCategories = getMainCategories();
   const subtaskCategories = getSubtaskCategories();
@@ -21,6 +24,15 @@ const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, on
   
   // Obter cards principais disponíveis
   const mainCards = allCards ? Object.values(allCards).filter(card => !isSubtask(card.category)) : [];
+
+  // Funções para gerenciar arquivos
+  const handleFilesSelected = (newFiles) => {
+    setAttachedFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const handleRemoveFile = (fileId) => {
+    setAttachedFiles(prev => prev.filter(file => file.id !== fileId));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -33,6 +45,14 @@ const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, on
         labels: selectedLabels,
         assignedUsers: selectedUsers,
         dueDate,
+        attachments: attachedFiles.map(file => ({
+          id: file.id,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          mimeType: file.mimeType,
+          url: file.url
+        })),
         createdAt: new Date().toISOString(),
         completedAt: null
       };
@@ -51,6 +71,7 @@ const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, on
       setSelectedLabels([]);
       setSelectedUsers([]);
       setDueDate(null);
+      setAttachedFiles([]);
     }
   };
 
@@ -123,12 +144,19 @@ const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, on
           
           <div className="form-group">
             <label htmlFor="description">Descrição</label>
-            <textarea
-              id="description"
+            <DescriptionEditor
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows="4"
+              onChange={setDescription}
               placeholder="Descreva os detalhes do card..."
+            />
+          </div>
+
+          <div className="form-group">
+            <label>📎 Anexos (Imagens, Documentos)</label>
+            <MediaUpload
+              onFilesSelected={handleFilesSelected}
+              selectedFiles={attachedFiles}
+              onRemoveFile={handleRemoveFile}
             />
           </div>
             <div className="form-group">
