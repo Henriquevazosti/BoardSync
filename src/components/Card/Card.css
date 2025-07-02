@@ -103,6 +103,37 @@
   border-radius: 2px;
 }
 
+/* Anexos do card */
+.card-attachments {
+  margin: 6px 0;
+}
+
+.attachments-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--color-backgroundLight);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--color-textSecondary);
+  width: fit-content;
+}
+
+.attachment-icon {
+  font-size: 12px;
+}
+
+.attachment-count {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.attachment-text {
+  color: var(--color-textSecondary);
+}
+
 .card-footer {
   display: flex;
   justify-content: space-between;

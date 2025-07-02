@@ -10,6 +10,7 @@ import {
   getDueDateStatus
 } from '../../data/initialData';
 import Comments from '../Comments/Comments';
+import DescriptionEditor from '../DescriptionEditor/DescriptionEditor';
 import './CardDetailView.css';
 
 const CardDetailView = ({ 
@@ -76,6 +77,99 @@ const CardDetailView = ({
       handleSave();
     }
     setIsEditingTitle(false);
+  };
+
+  // Função para renderizar descrição com imagens
+  const renderDescription = (description) => {
+    if (!description) return 'Adicione uma descrição mais detalhada...';
+
+    // Dividir o texto em partes usando regex para capturar imagens
+    const imageRegex = /!\[([^\]]*)\]\((data:image[^)]+)\)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    // Encontrar todas as imagens e criar array de partes
+    while ((match = imageRegex.exec(description)) !== null) {
+      // Adicionar texto antes da imagem
+      if (match.index > lastIndex) {
+        const textBefore = description.substring(lastIndex, match.index);
+        if (textBefore.trim()) {
+          parts.push({
+            type: 'text',
+            content: textBefore
+          });
+        }
+      }
+
+      // Adicionar a imagem
+      parts.push({
+        type: 'image',
+        alt: match[1] || 'Imagem',
+        src: match[2]
+      });
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Adicionar texto restante
+    if (lastIndex < description.length) {
+      const textAfter = description.substring(lastIndex);
+      if (textAfter.trim()) {
+        parts.push({
+          type: 'text',
+          content: textAfter
+        });
+      }
+    }
+
+    // Se não há imagens, mostrar apenas o texto
+    if (parts.length === 0) {
+      return (
+        <div className="description-text">
+          {description.split('\n').map((line, i) => (
+            <div key={i}>
+              {line || <br />}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Renderizar as partes
+    return (
+      <div className="description-content">
+        {parts.map((part, index) => {
+          if (part.type === 'text') {
+            return (
+              <div key={`text-${index}`} className="description-text">
+                {part.content.split('\n').map((line, lineIndex) => (
+                  <div key={lineIndex}>
+                    {line || <br />}
+                  </div>
+                ))}
+              </div>
+            );
+          } else if (part.type === 'image') {
+            return (
+              <div key={`img-${index}`} className="description-image">
+                <img 
+                  src={part.src} 
+                  alt={part.alt}
+                  className="description-img"
+                />
+                {part.alt && (
+                  <div className="description-image-caption">
+                    {part.alt}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return null;
+        })}
+      </div>
+    );
   };
 
   const handleDescriptionSave = () => {
@@ -195,13 +289,10 @@ const CardDetailView = ({
               
               {isEditingDescription ? (
                 <div className="description-edit-container">
-                  <textarea
-                    className="card-description-edit"
+                  <DescriptionEditor
                     value={editedCard.description}
-                    onChange={(e) => setEditedCard(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(newDescription) => setEditedCard(prev => ({ ...prev, description: newDescription }))}
                     placeholder="Adicione uma descrição mais detalhada..."
-                    rows="6"
-                    autoFocus
                   />
                   <div className="edit-actions">
                     <button 
@@ -226,7 +317,7 @@ const CardDetailView = ({
                   className={`card-description-display ${!editedCard.description ? 'empty' : ''}`}
                   onClick={() => setIsEditingDescription(true)}
                 >
-                  {editedCard.description || 'Adicione uma descrição mais detalhada...'}
+                  {renderDescription(editedCard.description)}
                 </div>
               )}
             </div>
