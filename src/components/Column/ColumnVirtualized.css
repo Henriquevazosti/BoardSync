@@ -1,0 +1,134 @@
+/* Estilos específicos para Column virtualizada */
+
+.column.virtualized .column-content {
+  position: relative;
+  overflow: hidden; /* VirtualList gerencia o scroll */
+}
+
+.virtual-cards-list {
+  width: 100%;
+  border-radius: 4px;
+  background: transparent;
+}
+
+/* Indicador de virtualização */
+.virtual-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  font-size: 10px;
+  background: linear-gradient(45deg, #4CAF50, #45a049);
+  border-radius: 50%;
+  color: white;
+  cursor: help;
+  animation: pulse-virtual 2s ease-in-out infinite;
+}
+
+@keyframes pulse-virtual {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Otimizações para drag and drop em listas virtuais */
+.column-content.virtualized.drag-over {
+  background-color: rgba(74, 144, 226, 0.1);
+  border: 2px dashed #4a90e2;
+  border-radius: 8px;
+}
+
+.column-content.virtualized.drag-over::before {
+  content: '📥 Solte o card aqui';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(74, 144, 226, 0.9);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Melhorias para empty state em colunas virtualizadas */
+.column-content.virtualized .empty-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+/* Responsividade para colunas virtualizadas */
+@media (max-width: 768px) {
+  .virtual-cards-list {
+    max-height: 300px; /* Altura menor em mobile */
+  }
+  
+  .virtual-indicator {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+  }
+}
+
+/* Performance hints */
+.column-content.virtualized {
+  /* Força aceleração por hardware */
+  transform: translateZ(0);
+  will-change: scroll-position;
+  
+  /* Melhora a renderização de texto */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth scroll para navegação */
+.virtual-cards-list:focus-within {
+  scroll-behavior: smooth;
+}
+
+/* Estados de loading para performance */
+.column-content.virtualized.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.column-content.virtualized.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

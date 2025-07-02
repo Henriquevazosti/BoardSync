@@ -10,6 +10,8 @@ import {
   getDueDateStatus
 } from '../../data/initialData';
 import Comments from '../Comments/Comments';
+import MediaUpload from '../MediaUpload/MediaUpload';
+import TrelloLikeEditor from '../DescriptionEditor/TrelloLikeEditor';
 import './CardDetailView.css';
 
 const CardDetailView = ({ 
@@ -34,11 +36,49 @@ const CardDetailView = ({
     category: card.category,
     labels: card.labels || [],
     assignedUsers: card.assignedUsers || [],
-    dueDate: card.dueDate || null
+    dueDate: card.dueDate || null,
+    attachments: card.attachments || []
   });
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
+
+  // Função para adicionar arquivo ao anexo quando colado na descrição
+  const handleAddAttachment = (file) => {
+    setEditedCard(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, file]
+    }));
+  };
+
+  // Função para inserir referência de anexo na descrição
+  const insertAttachmentReference = (file) => {
+    const isImage = file.type?.startsWith('image/');
+    
+    if (isImage) {
+      // Para imagens, inserir inline no editor WYSIWYG
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageHtml = `<p><img src="${e.target.result}" alt="${file.name}" style="max-width: 100%; height: auto; margin: 10px 0; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" /></p>`;
+        const currentDescription = editedCard.description || '';
+        
+        setEditedCard(prev => ({
+          ...prev,
+          description: currentDescription + imageHtml
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Para outros arquivos, inserir como link de referência
+      const fileReference = `<p><a href="#" data-file-name="${file.name}">📎 ${file.name}</a></p>`;
+      const currentDescription = editedCard.description || '';
+      
+      setEditedCard(prev => ({
+        ...prev,
+        description: currentDescription + fileReference
+      }));
+    }
+  };
 
   const getCategoryInfo = (category) => {
     return categoryConfig[category] || categoryConfig.atividade;
@@ -195,13 +235,12 @@ const CardDetailView = ({
               
               {isEditingDescription ? (
                 <div className="description-edit-container">
-                  <textarea
-                    className="card-description-edit"
+                  <TrelloLikeEditor
                     value={editedCard.description}
-                    onChange={(e) => setEditedCard(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Adicione uma descrição mais detalhada..."
-                    rows="6"
-                    autoFocus
+                    onChange={(value) => setEditedCard(prev => ({ ...prev, description: value }))}
+                    onAddAttachment={handleAddAttachment}
+                    attachments={editedCard.attachments}
+                    placeholder="Escreva a descrição do card... (Cole imagens diretamente aqui com Ctrl+V)"
                   />
                   <div className="edit-actions">
                     <button 
@@ -223,10 +262,67 @@ const CardDetailView = ({
                 </div>
               ) : (
                 <div 
-                  className={`card-description-display ${!editedCard.description ? 'empty' : ''}`}
+                  className="card-description-display"
                   onClick={() => setIsEditingDescription(true)}
                 >
-                  {editedCard.description || 'Adicione uma descrição mais detalhada...'}
+                  {editedCard.description ? (
+                    <TrelloLikeEditor
+                      value={editedCard.description}
+                      attachments={editedCard.attachments}
+                      readOnly={true}
+                    />
+                  ) : (
+                    <div className="empty-description">
+                      Adicione uma descrição mais detalhada...
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Seção de Anexos */}
+            <div className="card-attachments-section">
+              <div className="section-header">
+                <h3>📎 Anexos ({editedCard.attachments.length})</h3>
+              </div>
+              
+              <MediaUpload
+                onFilesSelected={(files) => {
+                  setEditedCard(prev => ({
+                    ...prev,
+                    attachments: [...prev.attachments, ...files]
+                  }));
+                }}
+                selectedFiles={editedCard.attachments}
+                onRemoveFile={(fileIndex) => {
+                  setEditedCard(prev => ({
+                    ...prev,
+                    attachments: prev.attachments.filter((_, index) => index !== fileIndex)
+                  }));
+                }}
+              />
+              
+              {/* Lista de anexos existentes */}
+              {editedCard.attachments.length > 0 && (
+                <div className="existing-attachments">
+                  {editedCard.attachments.map((file, index) => (
+                    <div key={index} className="attachment-item">
+                      <span className="attachment-icon">
+                        {file.type?.startsWith('image/') ? '🖼️' : 
+                         file.type?.includes('pdf') ? '📄' : 
+                         file.type?.includes('document') || file.type?.includes('text') ? '📝' : '📎'}
+                      </span>
+                      <span className="attachment-name">{file.name}</span>
+                      <button
+                        type="button"
+                        className="insert-description-btn"
+                        onClick={() => insertAttachmentReference(file)}
+                        title="Inserir referência na descrição"
+                      >
+                        ➕
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
