@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: boardsync_postgres
+    environment:
+      POSTGRES_DB: boardsync
+      POSTGRES_USER: boardsync_user
+      POSTGRES_PASSWORD: boardsync_pass
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boardsync_user -d boardsync"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: boardsync_api
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: boardsync
+      DB_USER: boardsync_user
+      DB_PASSWORD: boardsync_pass
+      JWT_SECRET: your_super_secret_jwt_key_change_this_in_production
+      SESSION_SECRET: your_super_secret_session_key_change_this_too
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  postgres_data:
