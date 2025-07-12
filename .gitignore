@@ -127,3 +127,8 @@ temp/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# SQLite temporary files
+*.db-shm
+*.db-wal
+*.db-journal
