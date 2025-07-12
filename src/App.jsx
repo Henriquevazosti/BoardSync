@@ -133,6 +133,7 @@ function App() {
   // Sincronizar usuários com a API
   const syncUsers = async () => {
     console.log('➡️ Chamando syncUsersWithAPI...');
+    console.log('🔍 Estado atual data.users antes da sync:', data.users);
     const apiUsers = await syncUsersWithAPI();
     console.log('🔍 Usuários recebidos da API:', apiUsers);
     if (apiUsers && apiUsers.length > 0) {
@@ -141,13 +142,20 @@ function App() {
       apiUsers.forEach(user => {
         usersObj[user.id] = user;
       });
-      setData(prev => ({
-        ...prev,
-        users: usersObj
-      }));
+      console.log('🔄 Objeto de usuários convertido:', usersObj);
+      setData(prev => {
+        const newData = {
+          ...prev,
+          users: usersObj
+        };
+        console.log('🟢 Novo estado data sendo definido:', newData);
+        return newData;
+      });
       setTimeout(() => {
         console.log('🟢 Estado data.users após sync:', usersObj);
       }, 1000);
+    } else {
+      console.log('⚠️ Nenhum usuário recebido da API ou array vazio');
     }
   };
 
@@ -536,6 +544,8 @@ function App() {
   // FUNÇÕES DE GERENCIAMENTO DE USUÁRIOS
   
   const handleManageUsers = () => {
+    console.log('🎯 Botão Usuários clicado - abrindo UserManager');
+    console.log('📊 Estado atual data.users:', Object.keys(data.users).length, 'usuários');
     setIsUserManagerOpen(true);
   };
 
@@ -930,8 +940,9 @@ function App() {
 
         {isUserManagerOpen && (
           <UserManager
+            isOpen={isUserManagerOpen}
             users={data.users}
-            onSave={handleSaveUsers}
+            onUsersChange={handleSaveUsers}
             onClose={() => setIsUserManagerOpen(false)}
             onSyncUsers={syncUsers}
           />

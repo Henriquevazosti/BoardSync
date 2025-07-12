@@ -3,7 +3,7 @@ const API_BASE_URL = 'http://localhost:3001/api/v1';
 
 // Função para fazer requisições autenticadas
 async function apiRequest(endpoint, options = {}) {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('boardsync_token') || localStorage.getItem('authToken');
   
   const config = {
     headers: {
@@ -28,23 +28,61 @@ async function apiRequest(endpoint, options = {}) {
   }
 }
 
-// Função para buscar todos os usuários da API
-export async function fetchUsers() {
+// Função principal para sincronizar usuários com a API
+export const syncUsersWithAPI = async () => {
+  console.log('➡️ Buscando usuários na API...');
   try {
-    console.log('🔍 Buscando usuários da API...');
-    const response = await apiRequest('/users');
-    console.log('✅ Usuários encontrados:', response);
-    
-    // A API retorna { success: true, data: [...], count: X }
-    if (response && response.success && response.data) {
-      return response.data;
+    const token = localStorage.getItem('boardsync_token') || localStorage.getItem('authToken');
+    if (!token) {
+      console.log('❌ Token não encontrado');
+      return [];
     }
+
+    console.log('🔑 Token encontrado, fazendo requisição...');
+    const response = await fetch('http://localhost:3001/api/v1/users', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    console.log('📡 Resposta da API recebida:', response.status);
     
-    return [];
-  } catch (error) {
-    console.error('❌ Erro ao buscar usuários:', error);
+    if (!response.ok) {
+      console.log('❌ Resposta não OK:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    console.log('📦 Dados brutos da API:', data);
+    
+    // Ajuste conforme o retorno da sua API
+    const users = data.data || [];
+    console.log('👥 Array de usuários extraído:', users);
+
+    // Converta para o formato do board
+    const convertedUsers = users.map(user => {
+      const converted = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar || '👤',
+        color: user.color || '#0052cc',
+        bgColor: user.bg_color || '#e6f3ff',
+        role: user.role || 'member'
+      };
+      console.log('🔄 Usuário convertido:', converted);
+      return converted;
+    });
+    
+    console.log('✅ Todos os usuários convertidos:', convertedUsers);
+    return convertedUsers;
+  } catch (err) {
+    console.error('❌ Erro ao sincronizar usuários:', err);
     return [];
   }
+};
+
+// Função para buscar todos os usuários da API (alias para compatibilidade)
+export async function fetchUsers() {
+  return await syncUsersWithAPI();
 }
 
 // Função para buscar usuário por ID
@@ -58,58 +96,9 @@ export async function fetchUserById(userId) {
   }
 }
 
-// Correção para src/services/userService.js
-export const syncUsersWithAPI = async () => {
-  console.log('➡️ Buscando usuários na API...');
-  try {
-    const token = localStorage.getItem('authToken');
-    if (!token) return [];
-
-    const response = await fetch('http://localhost:3001/api/v1/users', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    // Ajuste conforme o retorno da sua API
-    const users = data.data || [];
-
-    // Converta para o formato do board
-    return users.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      avatarUrl: user.avatar || null,
-      avatarColor: user.color || '#888',
-      role: user.role || 'member'
-    }));
-  } catch (err) {
-    console.error('Erro ao sincronizar usuários:', err);
-    return [];
-  }
-};
-
-// Função auxiliar para converter usuários da API para o formato do board
-const convertApiUserToBoardUser = (apiUser) => {
-  // Cores para avatares
-  const avatarColors = ['#FF5733', '#33FF57', '#3357FF', '#F033FF', '#FF33A8', '#33FFF6'];
-  const randomColor = avatarColors[Math.floor(Math.random() * avatarColors.length)];
-
-  return {
-    id: apiUser.id.toString(),
-    name: apiUser.name,
-    email: apiUser.email,
-    avatarUrl: apiUser.avatarUrl || null,
-    avatarColor: apiUser.avatarColor || randomColor,
-    role: apiUser.role || 'member'
-  };
-};
-
 export default {
   fetchUsers,
   fetchUserById,
-  convertApiUserToBoardUser,
   syncUsersWithAPI,
   apiRequest
 };
