@@ -1,4 +1,3 @@
-import { db as postgresDb } from './database.js';
 import sqlite from './sqlite.js';
 import logger from './logger.js';
 
@@ -6,14 +5,23 @@ import logger from './logger.js';
 class DatabaseAdapter {
   constructor() {
     this.isPostgres = process.env.DB_TYPE !== 'sqlite';
-    this.db = this.isPostgres ? postgresDb : null;
+    this.db = null;
+  }
+
+  async getPostgresDb() {
+    if (!this.db && this.isPostgres) {
+      const { db } = await import('./database.js');
+      this.db = db;
+    }
+    return this.db;
   }
 
   // Buscar um registro
   async findOne(table, where) {
     try {
       if (this.isPostgres) {
-        return await this.db(table).where(where).first();
+        const db = await this.getPostgresDb();
+        return await db(table).where(where).first();
       } else {
         const whereClause = Object.keys(where)
           .map(key => `${key} = ?`)
@@ -33,7 +41,8 @@ class DatabaseAdapter {
   async findMany(table, where = {}, options = {}) {
     try {
       if (this.isPostgres) {
-        let query = this.db(table);
+        const db = await this.getPostgresDb();
+        let query = db(table);
         if (Object.keys(where).length > 0) {
           query = query.where(where);
         }
@@ -76,7 +85,8 @@ class DatabaseAdapter {
   async insert(table, data) {
     try {
       if (this.isPostgres) {
-        const [result] = await this.db(table).insert(data).returning('*');
+        const db = await this.getPostgresDb();
+        const [result] = await db(table).insert(data).returning('*');
         return result;
       } else {
         const columns = Object.keys(data);
@@ -99,7 +109,8 @@ class DatabaseAdapter {
   async update(table, where, data) {
     try {
       if (this.isPostgres) {
-        const [result] = await this.db(table).where(where).update(data).returning('*');
+        const db = await this.getPostgresDb();
+        const [result] = await db(table).where(where).update(data).returning('*');
         return result;
       } else {
         const setClause = Object.keys(data)
@@ -127,7 +138,8 @@ class DatabaseAdapter {
   async delete(table, where) {
     try {
       if (this.isPostgres) {
-        return await this.db(table).where(where).del();
+        const db = await this.getPostgresDb();
+        return await db(table).where(where).del();
       } else {
         const whereClause = Object.keys(where)
           .map(key => `${key} = ?`)
@@ -148,7 +160,8 @@ class DatabaseAdapter {
   async raw(sql, params = []) {
     try {
       if (this.isPostgres) {
-        return await this.db.raw(sql, params);
+        const db = await this.getPostgresDb();
+        return await db.raw(sql, params);
       } else {
         return sqlite.query(sql, params);
       }

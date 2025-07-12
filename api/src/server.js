@@ -27,7 +27,6 @@ import uploadRoutes from './routes/upload.js';
 
 // Configurações
 import logger from './config/logger.js';
-import { connectDatabase } from './config/database.js';
 import sqlite from './config/sqlite.js';
 
 dotenv.config();
@@ -201,6 +200,7 @@ async function startServer() {
       sqlite.connect();
       logger.info('✅ SQLite database connected successfully');
     } else {
+      const { connectDatabase } = await import('./config/database.js');
       await connectDatabase();
       logger.info('✅ PostgreSQL database connected successfully');
     }

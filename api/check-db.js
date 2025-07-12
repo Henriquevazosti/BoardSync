@@ -23,6 +23,14 @@ try {
   const members = sqlite.query('SELECT * FROM workspace_members');
   console.table(members);
   
+  console.log('\n📋 Boards:');
+  const boards = sqlite.query('SELECT * FROM boards');
+  console.table(boards);
+  
+  console.log('\n📝 Board Lists:');
+  const lists = sqlite.query('SELECT * FROM board_lists');
+  console.table(lists);
+  
   sqlite.close();
 } catch (error) {
   console.error('❌ Erro:', error.message);

@@ -1,0 +1,956 @@
+{
+  "info": {
+    "name": "BoardSync API - Collection Completa",
+    "description": "Collection completa da API BoardSync com todos os endpoints testados e validados",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workspace_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "board_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "list_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "card_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "label_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "comment_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('auth_token', response.token);",
+                  "    pm.test('Login realizado com sucesso', function () {",
+                  "        pm.expect(response.token).to.not.be.undefined;",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"henrique.vazosti@gmail.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Realizar login e obter token JWT"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Realizar logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Workspaces",
+      "item": [
+        {
+          "name": "Listar Workspaces",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.workspaces && response.workspaces.length > 0) {",
+                  "        // Usar um workspace com GUID válido",
+                  "        const validWorkspace = response.workspaces.find(ws => ",
+                  "            ws.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)",
+                  "        );",
+                  "        if (validWorkspace) {",
+                  "            pm.environment.set('workspace_id', validWorkspace.id);",
+                  "        }",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/workspaces",
+              "host": ["{{base_url}}"],
+              "path": ["workspaces"]
+            },
+            "description": "Listar todos os workspaces do usuário"
+          }
+        },
+        {
+          "name": "Criar Workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Novo Workspace\",\n  \"description\": \"Workspace criado via Postman\",\n  \"color\": \"#4CAF50\",\n  \"visibility\": \"private\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/workspaces",
+              "host": ["{{base_url}}"],
+              "path": ["workspaces"]
+            },
+            "description": "Criar novo workspace"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Boards",
+      "item": [
+        {
+          "name": "Listar Boards do Workspace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.boards && response.boards.length > 0) {",
+                  "        pm.environment.set('board_id', response.boards[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/boards/workspace/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["boards", "workspace", "{{workspace_id}}"]
+            },
+            "description": "Listar todos os boards de um workspace"
+          }
+        },
+        {
+          "name": "Criar Board",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('board_id', response.board.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Board via Postman\",\n  \"description\": \"Board criado através da collection Postman\",\n  \"background_color\": \"#2196F3\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/boards/workspace/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["boards", "workspace", "{{workspace_id}}"]
+            },
+            "description": "Criar novo board em um workspace"
+          }
+        },
+        {
+          "name": "Buscar Board por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/boards/{{board_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["boards", "{{board_id}}"]
+            },
+            "description": "Buscar board específico por ID"
+          }
+        },
+        {
+          "name": "Atualizar Board",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Board Atualizado\",\n  \"description\": \"Descrição atualizada via Postman\",\n  \"background_color\": \"#FF9800\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/boards/{{board_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["boards", "{{board_id}}"]
+            },
+            "description": "Atualizar informações do board"
+          }
+        },
+        {
+          "name": "Deletar Board",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/boards/{{board_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["boards", "{{board_id}}"]
+            },
+            "description": "Deletar board"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Lists",
+      "item": [
+        {
+          "name": "Listar Listas do Board",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.lists && response.lists.length > 0) {",
+                  "        pm.environment.set('list_id', response.lists[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lists/board/{{board_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["lists", "board", "{{board_id}}"]
+            },
+            "description": "Listar todas as listas de um board"
+          }
+        },
+        {
+          "name": "Criar Lista",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('list_id', response.list.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lista via Postman\",\n  \"color\": \"#9C27B0\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/lists/board/{{board_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["lists", "board", "{{board_id}}"]
+            },
+            "description": "Criar nova lista em um board"
+          }
+        },
+        {
+          "name": "Buscar Lista por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lists/{{list_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["lists", "{{list_id}}"]
+            },
+            "description": "Buscar lista específica por ID"
+          }
+        },
+        {
+          "name": "Atualizar Lista",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lista Atualizada\",\n  \"color\": \"#E91E63\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/lists/{{list_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["lists", "{{list_id}}"]
+            },
+            "description": "Atualizar informações da lista"
+          }
+        },
+        {
+          "name": "Deletar Lista",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lists/{{list_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["lists", "{{list_id}}"]
+            },
+            "description": "Deletar lista"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎯 Cards",
+      "item": [
+        {
+          "name": "Listar Cards da Lista",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.cards && response.cards.length > 0) {",
+                  "        pm.environment.set('card_id', response.cards[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cards/list/{{list_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["cards", "list", "{{list_id}}"]
+            },
+            "description": "Listar todos os cards de uma lista"
+          }
+        },
+        {
+          "name": "Criar Card",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('card_id', response.card.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Card via Postman\",\n  \"description\": \"Card criado através da collection Postman\",\n  \"priority\": \"alta\",\n  \"category\": \"tarefa\",\n  \"due_date\": \"2025-12-31\",\n  \"estimated_hours\": 8\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cards/list/{{list_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["cards", "list", "{{list_id}}"]
+            },
+            "description": "Criar novo card em uma lista"
+          }
+        },
+        {
+          "name": "Buscar Card por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cards/{{card_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["cards", "{{card_id}}"]
+            },
+            "description": "Buscar card específico por ID"
+          }
+        },
+        {
+          "name": "Atualizar Card",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Card Atualizado\",\n  \"description\": \"Descrição atualizada via Postman\",\n  \"priority\": \"media\",\n  \"estimated_hours\": 12\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cards/{{card_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["cards", "{{card_id}}"]
+            },
+            "description": "Atualizar informações do card"
+          }
+        },
+        {
+          "name": "Mover Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_list_id\": \"{{list_id}}\",\n  \"new_position\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cards/{{card_id}}/move",
+              "host": ["{{base_url}}"],
+              "path": ["cards", "{{card_id}}", "move"]
+            },
+            "description": "Mover card para outra lista ou posição"
+          }
+        },
+        {
+          "name": "Deletar Card",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cards/{{card_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["cards", "{{card_id}}"]
+            },
+            "description": "Deletar card"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏷️ Labels",
+      "item": [
+        {
+          "name": "Listar Labels do Board",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.labels && response.labels.length > 0) {",
+                  "        pm.environment.set('label_id', response.labels[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/labels/board/{{board_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["labels", "board", "{{board_id}}"]
+            },
+            "description": "Listar todas as labels de um board"
+          }
+        },
+        {
+          "name": "Criar Label",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('label_id', response.label.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Label via Postman\",\n  \"color\": \"#FF5722\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/labels/board/{{board_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["labels", "board", "{{board_id}}"]
+            },
+            "description": "Criar nova label em um board"
+          }
+        },
+        {
+          "name": "Buscar Label por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/labels/{{label_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["labels", "{{label_id}}"]
+            },
+            "description": "Buscar label específica por ID"
+          }
+        },
+        {
+          "name": "Atualizar Label",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Label Atualizada\",\n  \"color\": \"#795548\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/labels/{{label_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["labels", "{{label_id}}"]
+            },
+            "description": "Atualizar informações da label"
+          }
+        },
+        {
+          "name": "Deletar Label",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/labels/{{label_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["labels", "{{label_id}}"]
+            },
+            "description": "Deletar label"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 Comments",
+      "item": [
+        {
+          "name": "Listar Comentários do Card",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.comments && response.comments.length > 0) {",
+                  "        pm.environment.set('comment_id', response.comments[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/comments/card/{{card_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "card", "{{card_id}}"]
+            },
+            "description": "Listar todos os comentários de um card"
+          }
+        },
+        {
+          "name": "Criar Comentário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('comment_id', response.comment.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Comentário criado via Postman! 🚀\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/comments/card/{{card_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "card", "{{card_id}}"]
+            },
+            "description": "Criar novo comentário em um card"
+          }
+        },
+        {
+          "name": "Buscar Comentário por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/comments/{{comment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "{{comment_id}}"]
+            },
+            "description": "Buscar comentário específico por ID"
+          }
+        },
+        {
+          "name": "Atualizar Comentário",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Comentário atualizado via Postman! ✅\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/comments/{{comment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "{{comment_id}}"]
+            },
+            "description": "Atualizar conteúdo do comentário"
+          }
+        },
+        {
+          "name": "Deletar Comentário",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/comments/{{comment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "{{comment_id}}"]
+            },
+            "description": "Deletar comentário"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Extras",
+      "item": [
+        {
+          "name": "Documentação da API",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            },
+            "description": "Acessar documentação da API"
+          }
+        },
+        {
+          "name": "Status da API",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Verificar status de saúde da API"
+          }
+        }
+      ]
+    }
+  ]
+}

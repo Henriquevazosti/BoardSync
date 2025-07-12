@@ -1,19 +1,22 @@
 import knex from 'knex';
-import knexConfig from '../../knexfile.js';
 import logger from './logger.js';
 
-const environment = process.env.NODE_ENV || 'development';
-const config = knexConfig[environment];
+let db = null;
 
 // ========================================
 // CONFIGURAÇÃO DO BANCO DE DADOS
 // ========================================
 
-export const db = knex(config);
-
 // Função para conectar e testar a conexão
 export async function connectDatabase() {
   try {
+    if (!db) {
+      const knexConfig = await import('../../knexfile.js');
+      const environment = process.env.NODE_ENV || 'development';
+      const config = knexConfig.default[environment];
+      db = knex(config);
+    }
+    
     // Testar conexão
     await db.raw('SELECT 1+1 as result');
     
@@ -33,8 +36,11 @@ export async function connectDatabase() {
 
 // Função para fechar conexão
 export async function disconnectDatabase() {
-  await db.destroy();
-  logger.info('🔌 Database connection closed');
+  if (dbInstance) {
+    await dbInstance.destroy();
+    dbInstance = null;
+    logger.info('🔌 Database connection closed');
+  }
 }
 
 // ========================================
@@ -62,7 +68,8 @@ export function orderBy(query, sort = 'created_at', direction = 'desc') {
 // ========================================
 
 export async function transaction(callback) {
-  return db.transaction(callback);
+  const database = await getDatabase();
+  return database.transaction(callback);
 }
 
 // ========================================
@@ -73,7 +80,8 @@ export async function transaction(callback) {
 export async function runMigrations() {
   try {
     logger.info('🔄 Executando migrações...');
-    await db.migrate.latest();
+    const database = await getDatabase();
+    await database.migrate.latest();
     logger.info('✅ Migrações executadas com sucesso');
   } catch (error) {
     logger.error('❌ Erro ao executar migrações:', error);
@@ -85,7 +93,8 @@ export async function runMigrations() {
 export async function runSeeds() {
   try {
     logger.info('🌱 Executando seeds...');
-    await db.seed.run();
+    const database = await getDatabase();
+    await database.seed.run();
     logger.info('✅ Seeds executados com sucesso');
   } catch (error) {
     logger.error('❌ Erro ao executar seeds:', error);
@@ -96,11 +105,13 @@ export async function runSeeds() {
 // Verificar saúde do banco
 export async function checkDatabaseHealth() {
   try {
+    const database = await getDatabase();
+    
     // Teste básico de conexão
-    const result = await db.raw('SELECT NOW() as timestamp, version() as version');
+    const result = await database.raw('SELECT NOW() as timestamp, version() as version');
     
     // Verificar se tabelas principais existem
-    const tables = await db.raw(`
+    const tables = await database.raw(`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
@@ -122,4 +133,13 @@ export async function checkDatabaseHealth() {
   }
 }
 
-export default db;
+// Função para obter a instância do banco de dados
+export async function getDatabase() {
+  if (!dbInstance) {
+    dbInstance = await connectToDatabase();
+  }
+  return dbInstance;
+}
+
+// Para compatibilidade com código que usa import db from './database.js'
+export { getDatabase as default };
