@@ -3,6 +3,8 @@ import { getAllUsers, generateUserId, defaultAvatars, labelColors } from '../../
 import './UserManager.css';
 
 const UserManager = ({ isOpen, onClose, users, onUsersChange }) => {
+  console.log('🔧 UserManager renderizado - isOpen:', isOpen);
+  
   const [editingUser, setEditingUser] = useState(null);
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [formData, setFormData] = useState({
@@ -13,9 +15,19 @@ const UserManager = ({ isOpen, onClose, users, onUsersChange }) => {
     bgColor: '#e6f3ff'
   });
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    console.log('❌ UserManager não abriu - isOpen é false');
+    return null;
+  }
 
-  const allUsers = Object.values(users);
+  console.log('✅ UserManager abriu - isOpen é true');
+  console.log('👥 UserManager - users recebidos:', users);
+  console.log('👥 UserManager - tipo de users:', typeof users);
+  console.log('👥 UserManager - Object.keys(users):', Object.keys(users || {}));
+  
+  const allUsers = Object.values(users || {});
+  console.log('👥 UserManager - allUsers após Object.values:', allUsers);
+  console.log('👥 UserManager - allUsers.length:', allUsers.length);
 
   const resetForm = () => {
     setFormData({
