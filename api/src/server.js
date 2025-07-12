@@ -196,10 +196,13 @@ app.use(errorHandler);
 async function startServer() {
   try {
     // Conectar ao banco de dados
-    if (process.env.DB_TYPE === 'sqlite') {
+    const dbType = process.env.DB_TYPE || 'sqlite';
+    
+    if (dbType === 'sqlite') {
       sqlite.connect();
+      await sqlite.initSchema();
       logger.info('✅ SQLite database connected successfully');
-    } else {
+    } else if (dbType === 'postgres' || dbType === 'postgresql') {
       const { connectDatabase } = await import('./config/database.js');
       await connectDatabase();
       logger.info('✅ PostgreSQL database connected successfully');
@@ -210,7 +213,7 @@ async function startServer() {
       logger.info(`🚀 Server running on port ${PORT}`);
       logger.info(`📖 API Documentation: http://localhost:${PORT}/api/v1`);
       logger.info(`🔧 Environment: ${process.env.NODE_ENV}`);
-      logger.info(`🗄️ Database: ${process.env.DB_TYPE || 'postgresql'}`);
+      logger.info(`🗄️ Database: ${dbType}`);
     });
 
     // Graceful shutdown

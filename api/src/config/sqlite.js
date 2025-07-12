@@ -39,24 +39,44 @@ export function initSQLiteSchema() {
   
   try {
     if (fs.existsSync(schemaPath)) {
-      const schema = fs.readFileSync(schemaPath, 'utf8');
-      // Executar schema em partes (SQLite não suporta múltiplos statements)
-      const statements = schema
-        .split(';')
-        .filter(stmt => stmt.trim())
-        .map(stmt => stmt.trim() + ';');
+      // Verificar se as tabelas já existem
+      const tableExists = db.prepare(`
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='organizations'
+      `).get();
       
-      statements.forEach(stmt => {
-        if (stmt.length > 1) {
-          db.exec(stmt);
-        }
-      });
-      
-      console.log('✅ Schema SQLite inicializado');
+      if (!tableExists) {
+        console.log('📋 Criando schema do banco de dados...');
+        
+        const schema = fs.readFileSync(schemaPath, 'utf8');
+        // Executar schema em partes (SQLite não suporta múltiplos statements)
+        const statements = schema
+          .split(';')
+          .filter(stmt => stmt.trim())
+          .map(stmt => stmt.trim() + ';');
+        
+        statements.forEach(stmt => {
+          if (stmt.length > 1) {
+            try {
+              db.exec(stmt);
+            } catch (error) {
+              // Ignorar erros de tabela já existe
+              if (!error.message.includes('already exists')) {
+                console.warn('⚠️ Aviso na execução do schema:', error.message);
+              }
+            }
+          }
+        });
+        
+        console.log('✅ Schema SQLite inicializado');
+      } else {
+        console.log('✅ Schema SQLite já existe');
+      }
     }
   } catch (error) {
     console.error('❌ Erro ao inicializar schema:', error.message);
-    throw error;
+    // Não fazer throw aqui, apenas logar o erro
+    console.log('🔄 Continuando mesmo com erro no schema...');
   }
 }
 
