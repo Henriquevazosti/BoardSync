@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/Header/Header';
 import Column from './components/Column/Column';
@@ -17,16 +17,11 @@ import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import DataManager from './components/DataManager/DataManager';
 import AddListButton from './components/AddListButton/AddListButton';
-import { 
-  initialData, 
-  getSubtasks, 
-  isSubtask, 
-  isOverdue, 
-  isDueToday, 
-  isDueSoon,
-  createActivity,
-  activityTypes
-} from './data/initialData';
+import { syncUsersWithAPI } from './services/userService';
+import { initialData } from './data/initialData';
+import { activityTypes, createActivity } from './utils/activityUtils';
+import { isOverdue, isDueToday, isDueSoon } from './utils/dateUtils';
+import './App.css';
 import './styles/themes.css';
 import './App.css';
 
@@ -35,12 +30,15 @@ function App() {
   const [user, setUser] = useState(null);
   const [currentPage, setCurrentPage] = useState('login'); // 'login', 'register', 'board'
   
-  // Estados do board (existentes)
+  // Estados do board
   const [data, setData] = useState(initialData);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedDateFilters, setSelectedDateFilters] = useState([]);
+  const [isFiltersMinimized, setIsFiltersMinimized] = useState(false);
+  
+  // Estados para modais e dialogs
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
   const [selectedCardForBlock, setSelectedCardForBlock] = useState(null);
   const [isLabelManagerOpen, setIsLabelManagerOpen] = useState(false);
@@ -48,395 +46,39 @@ function App() {
   const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [activityLogCardId, setActivityLogCardId] = useState(null);
-  const [isFiltersMinimized, setIsFiltersMinimized] = useState(false);
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
   const [selectedCardForComments, setSelectedCardForComments] = useState(null);
-  const [comments, setComments] = useState([]);
   const [isCardDetailOpen, setIsCardDetailOpen] = useState(false);
   const [selectedCardForDetail, setSelectedCardForDetail] = useState(null);
   const [isTeamChatOpen, setIsTeamChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
   const [isDataManagerOpen, setIsDataManagerOpen] = useState(false);
-
-  // Funções de autenticação
-  const handleLogin = (userData) => {
-    setUser(userData);
-    setCurrentPage('board');
-  };
-
-  const handleRegister = (userData) => {
-    setUser(userData);
-    setCurrentPage('board');
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    setCurrentPage('login');
-    // Reset board state
-    setData(initialData);
-    setIsModalOpen(false);
-    setSelectedColumn(null);
-    setSelectedCategories([]);
-    setSelectedDateFilters([]); // Bug corrigido: resetar filtros de data
-    setIsBlockModalOpen(false);
-    setSelectedCardForBlock(null);
-    setIsLabelManagerOpen(false);
-    setIsUserManagerOpen(false);
-    setIsThemeSelectorOpen(false);
-    setIsActivityLogOpen(false);
-    setActivityLogCardId(null);
-    setIsDataManagerOpen(false);
-    setIsFiltersMinimized(false); // Bug corrigido: resetar estado dos filtros
-    setIsCommentsModalOpen(false); // Bug corrigido: fechar modal de comentários
-    setSelectedCardForComments(null);
-    setComments([]); // Bug corrigido: limpar comentários
-    setIsCardDetailOpen(false); // Bug corrigido: fechar detalhes do card
-    setSelectedCardForDetail(null);
-    setIsTeamChatOpen(false); // Bug corrigido: fechar chat
-    setChatMessages([]); // Bug corrigido: limpar mensagens do chat
-  };
-
-  const goToLogin = () => {
-    setCurrentPage('login');
-  };
-
-  const goToRegister = () => {
-    setCurrentPage('register');
-  };
-
-  // Se não estiver autenticado, mostrar login ou registro
-  if (!user || currentPage !== 'board') {
-    if (currentPage === 'login') {
-      return (
-        <Login 
-          onLogin={handleLogin}
-          onGoToRegister={goToRegister}
-        />
-      );
-    } else if (currentPage === 'register') {
-      return (
-        <Register 
-          onRegister={handleRegister}
-          onGoToLogin={goToLogin}
-        />
-      );
-    }
-  }
-
-  // Função para adicionar atividade
-  const addActivity = (cardId, type, description, oldValue = null, newValue = null) => {
-    if (!user || !user.id) return;
+  
+  // Estados para dados dinâmicos
+  const [comments, setComments] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
+  
+  // Efeito para verificar se há token de autenticação salvo no localStorage
+  useEffect(() => {
+    const savedToken = localStorage.getItem('boardsync_token') || localStorage.getItem('authToken');
+    const savedUser = localStorage.getItem('boardsync_user') || localStorage.getItem('user');
     
-    const activity = createActivity(cardId, user.id, type, description, oldValue, newValue);
-    
-    setData(prevData => ({
-      ...prevData,
-      activities: {
-        ...prevData.activities,
-        [activity.id]: activity
-      }
-    }));
-  };
-
-  // Função para importar dados
-  const handleImportData = (importedData) => {
-    try {
-      // Validar se os dados importados são válidos
-      if (!importedData || typeof importedData !== 'object') {
-        throw new Error('Dados importados são inválidos');
-      }
-
-      // Aplicar os dados importados
-      setData(importedData);
-
-      // Registrar atividade de importação
-      if (user && user.id) {
-        const activity = createActivity(
-          'system',
-          user.id,
-          'data_imported',
-          'Dados importados do arquivo JSON',
-          null,
-          { timestamp: new Date().toISOString() }
-        );
+    if (savedToken && savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        setCurrentPage('board');
         
-        // Adicionar a atividade aos dados importados
-        setData(prevData => ({
-          ...prevData,
-          activities: {
-            ...prevData.activities,
-            [activity.id]: activity
-          }
-        }));
-      }
-
-      // Fechar o modal após importação bem-sucedida
-      setIsDataManagerOpen(false);
-      
-    } catch (error) {
-      console.error('Erro ao processar dados importados:', error);
-      throw error; // Re-throw para que o componente DataManager possa lidar com o erro
-    }
-  };
-
-  const moveCard = (cardId, sourceColumnId, targetColumnId) => {
-    if (sourceColumnId === targetColumnId) return;
-
-    console.log(`Moving card ${cardId} from ${sourceColumnId} to ${targetColumnId}`);
-
-    setData(prevData => {
-      const newData = { ...prevData };
-      const movedCard = newData.cards[cardId];
-      
-      // Verificar se é um card principal (não é subtarefa) ou uma subtarefa
-      const isMainCard = !isSubtask(movedCard.category);
-      const isSubtaskCard = isSubtask(movedCard.category);
-      
-      let cardsToMove = [];
-      
-      if (isMainCard) {
-        // Se for um card principal, mover ele e todas as suas subtarefas
-        cardsToMove.push(cardId);
-        const subtasks = getSubtasks(cardId, newData.cards);
-        const subtaskIds = subtasks.map(subtask => subtask.id);
-        cardsToMove.push(...subtaskIds);
-        
-        if (subtaskIds.length > 0) {
-          console.log(`Moving parent card with ${subtaskIds.length} subtasks:`, subtaskIds);
-        }
-      } else if (isSubtaskCard && movedCard.parentId) {
-        // Para subtarefas, mover apenas a subtarefa individual
-        // Não é necessário mover o card pai junto
-        cardsToMove.push(cardId);
-        
-        console.log(`Moving individual subtask ${cardId} independently from parent`);
-      } else {
-        // Card sem relações, mover apenas ele
-        cardsToMove.push(cardId);
-      }
-      
-      // Remover duplicatas
-      cardsToMove = [...new Set(cardsToMove)];
-      
-      // Atualizar todas as colunas que podem ser afetadas
-      const updatedColumns = { ...newData.columns };
-      
-      // Remover todos os cards (principal + subtarefas) de suas colunas atuais
-      Object.keys(updatedColumns).forEach(columnId => {
-        const column = updatedColumns[columnId];
-        const newCardIds = column.cardIds.filter(id => !cardsToMove.includes(id));
-        
-        // Só atualizar se houve mudança
-        if (newCardIds.length !== column.cardIds.length) {
-          updatedColumns[columnId] = {
-            ...column,
-            cardIds: newCardIds
-          };
-        }
-      });
-      
-      // Adicionar todos os cards na coluna de destino
-      const targetColumn = updatedColumns[targetColumnId];
-      updatedColumns[targetColumnId] = {
-        ...targetColumn,
-        cardIds: [...targetColumn.cardIds, ...cardsToMove]
-      };
-
-      return {
-        ...newData,
-        columns: updatedColumns
-      };
-    });
-
-    // Registrar atividade de movimentação
-    const sourceColumn = data.columns[sourceColumnId];
-    const targetColumn = data.columns[targetColumnId];
-    addActivity(
-      cardId, 
-      activityTypes.CARD_MOVED, 
-      `Card movido de "${sourceColumn.title}" para "${targetColumn.title}"`,
-      { column: sourceColumn.title },
-      { column: targetColumn.title }
-    );
-  };
-
-  const handleAddCard = (columnId) => {
-    setSelectedColumn(columnId);
-    setIsModalOpen(true);
-  };
-
-  const handleCreateCard = (cardData) => {
-    const newCardId = `card-${Date.now()}`;
-    const newCard = {
-      id: newCardId,
-      title: cardData.title,
-      description: cardData.description,
-      priority: cardData.priority,
-      category: cardData.category,
-      labels: cardData.labels || [],
-      assignedUsers: cardData.assignedUsers || [],
-      dueDate: cardData.dueDate || null,
-      createdAt: cardData.createdAt || new Date().toISOString(),
-      completedAt: null,
-      isBlocked: false,
-      blockReason: ''
-    };
-
-    // Adicionar parentId se for subtarefa
-    if (cardData.parentId) {
-      newCard.parentId = cardData.parentId;
-    }
-
-    setData(prevData => ({
-      ...prevData,
-      cards: {
-        ...prevData.cards,
-        [newCardId]: newCard,
-      },
-      columns: {
-        ...prevData.columns,
-        [selectedColumn]: {
-          ...prevData.columns[selectedColumn],
-          cardIds: [...prevData.columns[selectedColumn].cardIds, newCardId],
-        },
-      },
-    }));
-
-    setIsModalOpen(false);
-    setSelectedColumn(null);
-
-    // Registrar atividade de criação
-    addActivity(newCardId, activityTypes.CARD_CREATED, 'Card criado');
-  };
-
-  // Função para abrir visualização detalhada do card
-  const handleOpenCardDetail = (card) => {
-    setSelectedCardForDetail(card);
-    setIsCardDetailOpen(true);
-  };
-
-  // Função para fechar visualização detalhada do card
-  const handleCloseCardDetail = () => {
-    setIsCardDetailOpen(false);
-    setSelectedCardForDetail(null);
-  };
-
-  const handleEditCard = (updatedCard) => {
-    const originalCard = data.cards[updatedCard.id];
-    
-    // Detectar mudanças específicas e registrar atividades
-    if (originalCard.title !== updatedCard.title) {
-      addActivity(
-        updatedCard.id, 
-        activityTypes.TITLE_CHANGED, 
-        'Título alterado',
-        originalCard.title,
-        updatedCard.title
-      );
-    }
-    
-    if (originalCard.description !== updatedCard.description) {
-      addActivity(
-        updatedCard.id, 
-        activityTypes.DESCRIPTION_CHANGED, 
-        'Descrição atualizada'
-      );
-    }
-    
-    if (originalCard.priority !== updatedCard.priority) {
-      addActivity(
-        updatedCard.id, 
-        activityTypes.PRIORITY_CHANGED, 
-        'Prioridade alterada',
-        originalCard.priority,
-        updatedCard.priority
-      );
-    }
-    
-    if (originalCard.category !== updatedCard.category) {
-      addActivity(
-        updatedCard.id, 
-        activityTypes.CATEGORY_CHANGED, 
-        'Categoria alterada',
-        originalCard.category,
-        updatedCard.category
-      );
-    }
-    
-    if (originalCard.dueDate !== updatedCard.dueDate) {
-      addActivity(
-        updatedCard.id, 
-        activityTypes.DUE_DATE_CHANGED, 
-        'Data de vencimento alterada',
-        originalCard.dueDate,
-        updatedCard.dueDate
-      );
-    }
-    
-    // Verificar mudanças em labels
-    const originalLabels = originalCard.labels || [];
-    const newLabels = updatedCard.labels || [];
-    if (JSON.stringify(originalLabels.sort()) !== JSON.stringify(newLabels.sort())) {
-      addActivity(
-        updatedCard.id, 
-        activityTypes.LABELS_CHANGED, 
-        'Labels atualizadas'
-      );
-    }
-    
-    // Verificar mudanças em usuários atribuídos
-    const originalUsers = originalCard.assignedUsers || [];
-    const newUsers = updatedCard.assignedUsers || [];
-    if (JSON.stringify(originalUsers.sort()) !== JSON.stringify(newUsers.sort())) {
-      if (newUsers.length > originalUsers.length) {
-        addActivity(
-          updatedCard.id, 
-          activityTypes.USERS_ASSIGNED, 
-          'Usuários atribuídos'
-        );
-      } else if (newUsers.length < originalUsers.length) {
-        addActivity(
-          updatedCard.id, 
-          activityTypes.USERS_UNASSIGNED, 
-          'Usuários removidos'
-        );
-      } else {
-        addActivity(
-          updatedCard.id, 
-          activityTypes.USERS_ASSIGNED, 
-          'Atribuição de usuários alterada'
-        );
+        // Sincronizar usuários com a API após restaurar sessão
+        syncUsers();
+      } catch (error) {
+        console.error('Erro ao restaurar sessão:', error);
+        handleLogout();
       }
     }
-    
-    setData(prevData => ({
-      ...prevData,
-      cards: {
-        ...prevData.cards,
-        [updatedCard.id]: updatedCard
-      }
-    }));
-  };
+  }, []);
 
-  const handleCategoryToggle = (category) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) 
-        ? prev.filter(cat => cat !== category)
-        : [...prev, category]
-    );
-  };
-
-  const handleClearFilters = () => {
-    setSelectedCategories([]);
-  };
-
-  const filterCardsByCategory = (cards) => {
-    if (selectedCategories.length === 0) return cards;
-    return cards.filter(card => selectedCategories.includes(card.category));
-  };
-
-  // Funções para filtros de data
-  const getCardsStats = () => {
+  // Função para calcular estatísticas dos cards
+  const getCardStatusCounts = () => {
     const allCards = Object.values(data.cards);
     
     return {
@@ -485,6 +127,284 @@ function App() {
     
     return filteredCards;
   };
+  
+  // FUNÇÕES DE AUTENTICAÇÃO
+  
+  // Sincronizar usuários com a API
+  const syncUsers = async () => {
+    console.log('➡️ Chamando syncUsersWithAPI...');
+    const apiUsers = await syncUsersWithAPI();
+    console.log('🔍 Usuários recebidos da API:', apiUsers);
+    if (apiUsers && apiUsers.length > 0) {
+      // Converter array para objeto { id: user }
+      const usersObj = {};
+      apiUsers.forEach(user => {
+        usersObj[user.id] = user;
+      });
+      setData(prev => ({
+        ...prev,
+        users: usersObj
+      }));
+      setTimeout(() => {
+        console.log('🟢 Estado data.users após sync:', usersObj);
+      }, 1000);
+    }
+  };
+
+  // Login
+  const handleLogin = async (userData) => {
+    console.log('🔐 handleLogin chamado com:', userData);
+    
+    // Se os dados já vêm do Login.jsx (que já fez a autenticação)
+    if (userData && userData.token) {
+      setUser(userData);
+      setCurrentPage('board');
+      
+      // Sincronizar usuários com a API
+      await syncUsers();
+      
+      return true;
+    }
+    
+    // Fallback para login direto (se necessário)
+    try {
+      const response = await fetch('http://localhost:3001/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Credenciais inválidas');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.token) {
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        setUser(data.user);
+        setCurrentPage('board');
+        
+        await syncUsers();
+        
+        return true;
+      } else {
+        throw new Error(data.message || 'Erro no login');
+      }
+    } catch (error) {
+      console.error('❌ Erro no login:', error);
+      alert(`Erro no login: ${error.message}`);
+      return false;
+    }
+  };
+
+  // Registro
+  const handleRegister = async (userData) => {
+    console.log('📝 handleRegister chamado com:', userData);
+    
+    // Se os dados já vêm do Register.jsx (que já fez o registro)
+    if (userData && userData.token) {
+      setUser(userData);
+      setCurrentPage('board');
+      
+      // Sincronizar usuários com a API
+      await syncUsers();
+      
+      return true;
+    }
+    
+    // Fallback caso necessário
+    try {
+      const response = await fetch('http://localhost:3001/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro no registro');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        return handleLogin({
+          email: userData.email,
+          password: userData.password
+        });
+      } else {
+        throw new Error(data.message || 'Erro no registro');
+      }
+    } catch (error) {
+      console.error('❌ Erro no registro:', error);
+      alert(`Erro no registro: ${error.message}`);
+      return false;
+    }
+  };
+
+  // Logout
+  const handleLogout = () => {
+    // Limpar dados de autenticação (ambos os formatos)
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('boardsync_token');
+    localStorage.removeItem('boardsync_user');
+    
+    // Resetar estados
+    setUser(null);
+    setCurrentPage('login');
+  };
+
+  // Navegação
+  const goToLogin = () => setCurrentPage('login');
+  const goToRegister = () => setCurrentPage('register');
+
+  // FUNÇÕES DO BOARD
+  
+  // Função para resetar o board
+  const resetBoard = async () => {
+    if (window.confirm('Tem certeza que deseja resetar o board para o estado inicial? Todas as alterações serão perdidas.')) {
+      // Restaurar dados iniciais
+      setData(initialData);
+      
+      // Se estiver logado, sincronizar usuários para manter usuários reais
+      if (user && localStorage.getItem('authToken')) {
+        console.log('🔄 Resetando board e sincronizando usuários da API');
+        await syncUsers();
+      }
+    }
+  };
+
+  // Funções de manipulação de cards
+  const handleAddCard = (columnId) => {
+    setSelectedColumn(columnId);
+    setIsModalOpen(true);
+  };
+
+  const handleCreateCard = (newCard) => {
+    const cardId = `card-${Date.now()}`;
+    
+    const finalCard = {
+      ...newCard,
+      id: cardId,
+      createdAt: new Date().toISOString(),
+      createdBy: user ? user.id : 'user-1', // Usar ID do usuário logado ou padrão
+      comments: []
+    };
+    
+    setData(prevData => {
+      const column = prevData.columns[newCard.columnId];
+      
+      return {
+        ...prevData,
+        cards: {
+          ...prevData.cards,
+          [cardId]: finalCard
+        },
+        columns: {
+          ...prevData.columns,
+          [newCard.columnId]: {
+            ...column,
+            cardIds: [...column.cardIds, cardId]
+          }
+        }
+      };
+    });
+    
+    setIsModalOpen(false);
+    
+    // Registrar atividade
+    addActivity(cardId, activityTypes.CARD_CREATED, `Card criado: ${newCard.title}`);
+  };
+
+  const handleUpdateCard = (updatedCard) => {
+    setData(prevData => ({
+      ...prevData,
+      cards: {
+        ...prevData.cards,
+        [updatedCard.id]: updatedCard
+      }
+    }));
+    
+    // Registrar atividade de edição
+    addActivity(updatedCard.id, activityTypes.CARD_UPDATED, `Card atualizado: ${updatedCard.title}`);
+  };
+
+  const handleOpenCardDetail = (card) => {
+    setSelectedCardForDetail(card);
+    setIsCardDetailOpen(true);
+  };
+  
+  // Movimentação de cards
+  const moveCard = (cardId, sourceColumnId, destinationColumnId, newIndex) => {
+    setData(prevData => {
+      // Se está movendo dentro da mesma coluna
+      if (sourceColumnId === destinationColumnId) {
+        const column = prevData.columns[sourceColumnId];
+        const newCardIds = Array.from(column.cardIds);
+        const currentIndex = newCardIds.indexOf(cardId);
+        
+        // Remover da posição atual e inserir na nova posição
+        newCardIds.splice(currentIndex, 1);
+        newCardIds.splice(newIndex, 0, cardId);
+        
+        return {
+          ...prevData,
+          columns: {
+            ...prevData.columns,
+            [sourceColumnId]: {
+              ...column,
+              cardIds: newCardIds
+            }
+          }
+        };
+      } 
+      
+      // Se está movendo para outra coluna
+      const sourceColumn = prevData.columns[sourceColumnId];
+      const destinationColumn = prevData.columns[destinationColumnId];
+      
+      const sourceCardIds = Array.from(sourceColumn.cardIds);
+      const destinationCardIds = Array.from(destinationColumn.cardIds);
+      
+      // Remover da coluna de origem
+      sourceCardIds.splice(sourceCardIds.indexOf(cardId), 1);
+      
+      // Adicionar à coluna de destino na posição correta
+      destinationCardIds.splice(newIndex, 0, cardId);
+      
+      return {
+        ...prevData,
+        columns: {
+          ...prevData.columns,
+          [sourceColumnId]: {
+            ...sourceColumn,
+            cardIds: sourceCardIds
+          },
+          [destinationColumnId]: {
+            ...destinationColumn,
+            cardIds: destinationCardIds
+          }
+        }
+      };
+    });
+    
+    // Registrar atividade de movimentação
+    const sourceName = data.columns[sourceColumnId].title;
+    const destName = data.columns[destinationColumnId].title;
+    const cardTitle = data.cards[cardId].title;
+    
+    addActivity(
+      cardId, 
+      activityTypes.CARD_MOVED, 
+      `Card movido: ${cardTitle}`,
+      null,
+      { sourceColumn: sourceName, destinationColumn: destName }
+    );
+  };
 
   const handleAddColumn = (columnTitle = 'Nova Lista') => {
     const newColumnId = `column-${Date.now()}`;
@@ -504,12 +424,14 @@ function App() {
     }));
   };
 
+  // FUNÇÕES DE BLOQUEIO DE CARDS
+  
   const handleBlockCard = (card) => {
     setSelectedCardForBlock(card);
     setIsBlockModalOpen(true);
   };
 
-  const blockCard = (cardId, blockReason) => {
+  const handleConfirmBlock = (cardId, blockReason) => {
     setData(prevData => ({
       ...prevData,
       cards: {
@@ -524,9 +446,12 @@ function App() {
 
     // Registrar atividade de bloqueio
     addActivity(cardId, activityTypes.CARD_BLOCKED, `Card bloqueado: ${blockReason}`);
+    
+    setIsBlockModalOpen(false);
+    setSelectedCardForBlock(null);
   };
 
-  const unblockCard = (cardId) => {
+  const handleUnblock = (cardId) => {
     setData(prevData => ({
       ...prevData,
       cards: {
@@ -541,12 +466,26 @@ function App() {
 
     // Registrar atividade de desbloqueio
     addActivity(cardId, activityTypes.CARD_UNBLOCKED, 'Card desbloqueado');
+    
+    setIsBlockModalOpen(false);
+    setSelectedCardForBlock(null);
   };
 
+  // FUNÇÕES DE GERENCIAMENTO DE LABELS
+  
   const handleManageLabels = () => {
     setIsLabelManagerOpen(true);
   };
 
+  const handleSaveLabels = (updatedLabels) => {
+    setData(prevData => ({
+      ...prevData,
+      labels: updatedLabels
+    }));
+    
+    setIsLabelManagerOpen(false);
+  };
+  
   const createLabel = (newLabel) => {
     setData(prevData => ({
       ...prevData,
@@ -594,24 +533,53 @@ function App() {
     }
   };
 
-  // Funções para gerenciar usuários
+  // FUNÇÕES DE GERENCIAMENTO DE USUÁRIOS
+  
   const handleManageUsers = () => {
     setIsUserManagerOpen(true);
   };
 
-  const handleUsersChange = (updatedUsers) => {
+  const handleSaveUsers = (updatedUsers) => {
     setData(prevData => ({
       ...prevData,
       users: updatedUsers
     }));
+    
+    setIsUserManagerOpen(false);
   };
 
-  // Funções de gerenciamento de temas
+  // FUNÇÕES DE GERENCIAMENTO DE TEMAS
+  
   const handleManageThemes = () => {
     setIsThemeSelectorOpen(true);
   };
 
-  // Funções para histórico de atividades
+  // FUNÇÕES PARA HISTÓRICO DE ATIVIDADES
+  
+  const addActivity = (cardId, type, description, userId = null, metadata = null) => {
+    const activityId = `activity-${Date.now()}`;
+    
+    const activity = {
+      id: activityId,
+      cardId,
+      userId: userId || (user ? user.id : 'user-1'),
+      type,
+      description,
+      timestamp: new Date().toISOString(),
+      metadata
+    };
+    
+    setData(prevData => ({
+      ...prevData,
+      activities: {
+        ...prevData.activities,
+        [activityId]: activity
+      }
+    }));
+    
+    return activityId;
+  };
+  
   const handleViewActivityLog = (cardId = null) => {
     setActivityLogCardId(cardId);
     setIsActivityLogOpen(true);
@@ -627,11 +595,17 @@ function App() {
     setIsFiltersMinimized(!isFiltersMinimized);
   };
 
-  // Funções para comentários
+  // FUNÇÕES PARA COMENTÁRIOS
+  
+  const findCardInAllColumns = (cardId) => {
+    return data.cards[cardId];
+  };
+  
   const handleViewComments = (cardId) => {
     console.log('handleViewComments chamada com cardId:', cardId);
     const card = findCardInAllColumns(cardId);
     console.log('Card encontrado:', card);
+    
     if (card) {
       setSelectedCardForComments(card);
       setIsCommentsModalOpen(true);
@@ -647,7 +621,7 @@ function App() {
     // Adicionar atividade de comentário
     const activity = createActivity(
       comment.cardId,
-      user.id,
+      user ? user.id : 'user-1',
       activityTypes.COMMENT_ADDED,
       'Comentário adicionado',
       null,
@@ -656,6 +630,7 @@ function App() {
         commentText: comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text
       }
     );
+    
     setData(prev => ({
       ...prev,
       activities: {
@@ -671,9 +646,8 @@ function App() {
       setComments(prev => prev.filter(c => c.id !== commentId));
       
       // Adicionar atividade de remoção de comentário
-      const activity = createActivity(
+      addActivity(
         comment.cardId,
-        user.id,
         activityTypes.COMMENT_DELETED,
         'Comentário removido',
         null,
@@ -682,13 +656,6 @@ function App() {
           commentText: comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text
         }
       );
-      setData(prev => ({
-        ...prev,
-        activities: {
-          ...prev.activities,
-          [activity.id]: activity
-        }
-      }));
     }
   };
 
@@ -701,9 +668,8 @@ function App() {
     );
     
     // Adicionar atividade de edição de comentário
-    const activity = createActivity(
+    addActivity(
       editedComment.cardId,
-      user.id,
       activityTypes.COMMENT_EDITED || 'comment_edited',
       'Comentário editado',
       null,
@@ -712,13 +678,6 @@ function App() {
         commentText: editedComment.text.length > 50 ? editedComment.text.substring(0, 50) + '...' : editedComment.text
       }
     );
-    setData(prev => ({
-      ...prev,
-      activities: {
-        ...prev.activities,
-        [activity.id]: activity
-      }
-    }));
   };
 
   // Funções para o Team Chat
@@ -731,7 +690,14 @@ function App() {
   };
 
   const handleSendChatMessage = (message) => {
-    setChatMessages(prev => [...prev, message]);
+    const newMessage = {
+      id: `message-${Date.now()}`,
+      userId: user ? user.id : 'user-1',
+      message: message,
+      timestamp: new Date().toISOString()
+    };
+    
+    setChatMessages(prev => [...prev, newMessage]);
     
     // Adicionar atividade de mensagem no chat
     addActivity(
@@ -740,7 +706,7 @@ function App() {
       'Nova mensagem no chat da equipe',
       null,
       {
-        messageType: message.type,
+        messageType: message.type || 'text',
         hasFile: !!message.file,
         preview: message.content ? (message.content.length > 50 ? 
           message.content.substring(0, 50) + '...' : message.content) : 
@@ -751,19 +717,7 @@ function App() {
     );
   };
 
-  // Função auxiliar para encontrar card em todas as colunas
-  const findCardInAllColumns = (cardId) => {
-    console.log('Procurando card com ID:', cardId);
-    console.log('Dados disponíveis:', data.cards);
-    // Buscar diretamente no objeto de cards
-    const card = data.cards[cardId];
-    if (card) {
-      console.log('Card encontrado:', card);
-      return card;
-    }
-    console.log('Card não encontrado');
-    return null;
-  };
+  // FUNÇÕES DE GERENCIAMENTO DE COLUNAS
 
   const handleEditColumn = (columnId, newTitle) => {
     setData(prevData => ({
@@ -794,6 +748,8 @@ function App() {
         const remainingColumns = prevData.columnOrder.filter(id => id !== columnId);
         if (remainingColumns.length > 0) {
           const firstColumnId = remainingColumns[0];
+          
+          // Mover todos os cards da coluna deletada para a primeira coluna
           const updatedColumns = {
             ...prevData.columns,
             [firstColumnId]: {
@@ -801,20 +757,22 @@ function App() {
               cardIds: [...prevData.columns[firstColumnId].cardIds, ...cardsInColumn]
             }
           };
+          
+          // Remover a coluna deletada
           delete updatedColumns[columnId];
-
+          
           return {
             ...prevData,
             columns: updatedColumns,
-            columnOrder: remainingColumns
+            columnOrder: prevData.columnOrder.filter(id => id !== columnId)
           };
         }
       }
-
-      // Se não há cards ou não há outras colunas, apenas excluir
+      
+      // Se não há cards, apenas remover a coluna
       const updatedColumns = { ...prevData.columns };
       delete updatedColumns[columnId];
-
+      
       return {
         ...prevData,
         columns: updatedColumns,
@@ -822,220 +780,234 @@ function App() {
       };
     });
   };
+  
+  // RENDERIZAÇÃO CONDICIONAL
+
+  // Se não estiver autenticado, mostrar login ou registro
+  if (!user || currentPage !== 'board') {
+    console.log('🔍 App: Renderizando login/register', { user, currentPage });
+    if (currentPage === 'login') {
+      return (
+        <Login 
+          onLogin={handleLogin}
+          onGoToRegister={goToRegister}
+        />
+      );
+    } else if (currentPage === 'register') {
+      return (
+        <Register 
+          onRegister={handleRegister}
+          onGoToLogin={goToLogin}
+        />
+      );
+    }
+  }
+
+  console.log('🔍 App: Renderizando board', { 
+    user, 
+    currentPage, 
+    resetBoard: typeof resetBoard,
+    usuarios: Object.keys(data.users).length,
+    usuariosDados: Object.values(data.users) 
+  });
 
   return (
-    <div className="app">
-      <Header 
-        user={user}
-        onManageLabels={handleManageLabels}
-        onManageUsers={handleManageUsers}
-        onManageThemes={handleManageThemes}
-        onViewActivities={handleViewAllActivities}
-        onOpenTeamChat={handleOpenTeamChat}
-        onManageData={() => setIsDataManagerOpen(true)}
-        onLogout={handleLogout}
-      />
-      <div className="board">
-        <div className={`filters-section ${isFiltersMinimized ? 'minimized' : ''} ${(selectedCategories.length > 0 || selectedDateFilters.length > 0) ? 'has-active-filters' : ''}`}>
-          <div className="filters-header">
-            <h3 className="filters-title">
-              {isFiltersMinimized ? 'Filtros' : 'Filtros do Board'}
-            </h3>
-            <button 
-              className="toggle-filters-btn"
-              onClick={toggleFilters}
-              title={isFiltersMinimized ? 'Expandir filtros' : 'Minimizar filtros'}
-            >
-              {isFiltersMinimized ? '🔽' : '🔼'}
-            </button>
-          </div>
-          {!isFiltersMinimized && (
-            <div className="filters-content">
-              <CategoryFilter 
-                selectedCategories={selectedCategories}
-                onCategoryToggle={handleCategoryToggle}
-                onClearAll={handleClearFilters}
-              />
-              <DueDateFilter
-                selectedFilters={selectedDateFilters}
-                onFiltersChange={setSelectedDateFilters}
-                cardsStats={getCardsStats()}
-              />
-            </div>
-          )}
-        </div>
-        <div className="board-content">
-          {data.columnOrder.map((columnId) => {
-            const column = data.columns[columnId];
-            const allCards = column.cardIds.map(cardId => data.cards[cardId]);
-            
-            // Aplicar filtros apenas nos cards desta coluna
-            let filteredCards = allCards;
-            
-            // Aplicar filtros de categoria
-            if (selectedCategories.length > 0) {
-              filteredCards = filteredCards.filter(card => 
-                selectedCategories.includes(card.category)
-              );
-            }
-            
-            // Aplicar filtros de data
-            filteredCards = filterCardsByDate(filteredCards);
-
-            return (
-              <Column
-                key={column.id}
-                column={column}
-                cards={filteredCards}
-                totalCards={allCards.length}
-                allCards={data.cards}
-                allLabels={data.labels}
-                allUsers={data.users}
-                totalColumns={data.columnOrder.length}
-                onAddCard={handleAddCard}
-                onMoveCard={moveCard}
-                onOpenCardDetail={handleOpenCardDetail}
-                onBlockCard={handleBlockCard}
-                onManageLabels={handleManageLabels}
-                onViewActivityLog={handleViewActivityLog}
-                onViewComments={handleViewComments}
-                onEditColumn={handleEditColumn}
-                onDeleteColumn={handleDeleteColumn}
-              />
-            );
-          })}
-          <AddListButton onAddColumn={handleAddColumn} />
-        </div>
-      </div>
-
-      {isModalOpen && (
-        <NewCardModal
-          onClose={() => setIsModalOpen(false)}
-          onCreateCard={handleCreateCard}
-          allCards={data.cards}
-          allLabels={data.labels}
-          allUsers={data.users}
-          onManageLabels={handleManageLabels}
-        />
-      )}
-
-      {isBlockModalOpen && selectedCardForBlock && (
-        <BlockCardModal
-          card={selectedCardForBlock}
-          onClose={() => {
-            setIsBlockModalOpen(false);
-            setSelectedCardForBlock(null);
-          }}
-          onBlockCard={blockCard}
-          onUnblockCard={unblockCard}
-        />
-      )}
-
-      {isLabelManagerOpen && (
-        <LabelManager
-          labels={data.labels}
-          onClose={() => setIsLabelManagerOpen(false)}
-          onCreateLabel={createLabel}
-          onEditLabel={editLabel}
-          onDeleteLabel={deleteLabel}
-        />
-      )}
-
-      {isUserManagerOpen && (
-        <UserManager
-          isOpen={isUserManagerOpen}
-          users={data.users}
-          onClose={() => setIsUserManagerOpen(false)}
-          onUsersChange={handleUsersChange}
-        />
-      )}
-
-      {isThemeSelectorOpen && (
-        <ThemeSelector
-          isOpen={isThemeSelectorOpen}
-          onClose={() => setIsThemeSelectorOpen(false)}
-        />
-      )}
-
-      {isActivityLogOpen && (
-        <ActivityLog
-          isOpen={isActivityLogOpen}
-          onClose={() => {
-            setIsActivityLogOpen(false);
-            setActivityLogCardId(null);
-          }}
-          activities={data.activities}
-          users={data.users}
-          cards={data.cards}
-          cardId={activityLogCardId}
-        />
-      )}
-
-      {isCommentsModalOpen && selectedCardForComments && (
-        <CommentsModal
-          isOpen={isCommentsModalOpen}
-          onClose={() => {
-            console.log('Fechando modal de comentários');
-            setIsCommentsModalOpen(false);
-            setSelectedCardForComments(null);
-          }}
-          card={selectedCardForComments}
-          comments={comments}
-          currentUser={user}
-          onAddComment={handleAddComment}
-          onDeleteComment={handleDeleteComment}
-          onEditComment={handleEditComment}
-        />
-      )}
-
-      {isCardDetailOpen && selectedCardForDetail && (
-        <CardDetailView
-          card={selectedCardForDetail}
-          allCards={data.cards}
-          allLabels={data.labels}
-          allUsers={data.users}
-          comments={comments}
-          currentUser={user}
-          onSave={handleEditCard}
-          onClose={handleCloseCardDetail}
-          onAddComment={handleAddComment}
-          onEditComment={handleEditComment}
-          onDeleteComment={handleDeleteComment}
-          onViewActivityLog={handleViewActivityLog}
-          onManageLabels={handleManageLabels}
-        />
-      )}
-
-      {isTeamChatOpen && (
-        <TeamChat
-          isOpen={isTeamChatOpen}
-          onClose={handleCloseTeamChat}
-          currentUser={user}
-          allUsers={data.users}
-          messages={chatMessages}
-          onSendMessage={handleSendChatMessage}
-        />
-      )}
-
-      {isDataManagerOpen && (
-        <DataManager
-          isOpen={isDataManagerOpen}
-          onClose={() => setIsDataManagerOpen(false)}
-          data={data}
-          onImportData={handleImportData}
+    <ThemeProvider>
+      <div className="app">
+        <Header 
           user={user}
+          onManageLabels={handleManageLabels}
+          onManageUsers={handleManageUsers}
+          onManageThemes={handleManageThemes}
+          onViewActivities={handleViewAllActivities}
+          onOpenTeamChat={handleOpenTeamChat}
+          onManageData={() => setIsDataManagerOpen(true)}
+          onResetBoard={resetBoard}
+          onLogout={handleLogout}
         />
-      )}
-    </div>
+        <div className="board">
+          <div className={`filters-section ${isFiltersMinimized ? 'minimized' : ''} ${(selectedCategories.length > 0 || selectedDateFilters.length > 0) ? 'has-active-filters' : ''}`}>
+            <div className="filters-header">
+              <h3>Filtros</h3>
+              <button 
+                className="minimize-btn" 
+                onClick={() => setIsFiltersMinimized(!isFiltersMinimized)}
+                title={isFiltersMinimized ? 'Expandir filtros' : 'Minimizar filtros'}
+              >
+                {isFiltersMinimized ? '📖' : '📕'}
+              </button>
+            </div>
+            {!isFiltersMinimized && (
+              <div className="filters-content">
+                <CategoryFilter 
+                  selectedCategories={selectedCategories}
+                  onCategoryChange={setSelectedCategories}
+                />
+                <DueDateFilter 
+                  selectedFilters={selectedDateFilters}
+                  onFiltersChange={setSelectedDateFilters}
+                  cardsStats={getCardStatusCounts()}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="board-content">
+            {data.columnOrder.map((columnId) => {
+              const column = data.columns[columnId];
+              const allCards = column.cardIds.map(cardId => data.cards[cardId]).filter(Boolean);
+              
+              // Aplicar filtros apenas nos cards desta coluna
+              let filteredCards = allCards;
+              
+              // Aplicar filtros de categoria
+              if (selectedCategories.length > 0) {
+                filteredCards = filteredCards.filter(card => 
+                  selectedCategories.includes(card.category)
+                );
+              }
+              
+              // Aplicar filtros de data
+              filteredCards = filterCardsByDate(filteredCards);
+
+              return (
+                <Column
+                  key={column.id}
+                  column={column}
+                  cards={filteredCards}
+                  totalCards={allCards.length}
+                  allCards={data.cards}
+                  allLabels={data.labels}
+                  allUsers={data.users}
+                  totalColumns={data.columnOrder.length}
+                  onAddCard={handleAddCard}
+                  onMoveCard={moveCard}
+                  onOpenCardDetail={handleOpenCardDetail}
+                  onBlockCard={handleBlockCard}
+                  onManageLabels={handleManageLabels}
+                  onViewActivityLog={handleViewActivityLog}
+                  onViewComments={handleViewComments}
+                  onEditColumn={handleEditColumn}
+                  onDeleteColumn={handleDeleteColumn}
+                />
+              );
+            })}
+            <AddListButton onAddColumn={handleAddColumn} />
+          </div>
+        </div>
+
+        {/* Modais */}
+        {isModalOpen && (
+          <NewCardModal
+            columnId={selectedColumn}
+            onCreateCard={handleCreateCard}
+            onClose={() => setIsModalOpen(false)}
+            allCards={data.cards}
+            allLabels={data.labels}
+            allUsers={data.users}
+          />
+        )}
+
+        {isBlockModalOpen && selectedCardForBlock && (
+          <BlockCardModal
+            card={selectedCardForBlock}
+            onBlock={handleConfirmBlock}
+            onUnblock={handleUnblock}
+            onClose={() => {
+              setIsBlockModalOpen(false);
+              setSelectedCardForBlock(null);
+            }}
+          />
+        )}
+
+        {isLabelManagerOpen && (
+          <LabelManager
+            labels={data.labels}
+            onSave={handleSaveLabels}
+            onClose={() => setIsLabelManagerOpen(false)}
+          />
+        )}
+
+        {isUserManagerOpen && (
+          <UserManager
+            users={data.users}
+            onSave={handleSaveUsers}
+            onClose={() => setIsUserManagerOpen(false)}
+            onSyncUsers={syncUsers}
+          />
+        )}
+
+        {isThemeSelectorOpen && (
+          <ThemeSelector onClose={() => setIsThemeSelectorOpen(false)} />
+        )}
+
+        {isActivityLogOpen && (
+          <ActivityLog
+            activities={Object.values(data.activities)}
+            allCards={data.cards}
+            allUsers={data.users}
+            cardId={activityLogCardId}
+            onClose={() => {
+              setIsActivityLogOpen(false);
+              setActivityLogCardId(null);
+            }}
+          />
+        )}
+
+        {isCommentsModalOpen && selectedCardForComments && (
+          <CommentsModal
+            card={selectedCardForComments}
+            allCards={data.cards}
+            allUsers={data.users}
+            comments={comments.filter(c => c.cardId === selectedCardForComments.id)}
+            onAddComment={handleAddComment}
+            onDeleteComment={handleDeleteComment}
+            onEditComment={handleEditComment}
+            onClose={() => {
+              setIsCommentsModalOpen(false);
+              setSelectedCardForComments(null);
+            }}
+          />
+        )}
+
+        {isCardDetailOpen && selectedCardForDetail && (
+          <CardDetailView
+            card={selectedCardForDetail}
+            allCards={data.cards}
+            allLabels={data.labels}
+            allUsers={data.users}
+            onUpdateCard={handleUpdateCard}
+            onClose={() => {
+              setIsCardDetailOpen(false);
+              setSelectedCardForDetail(null);
+            }}
+            onCreateCard={handleCreateCard}
+            onBlockCard={handleBlockCard}
+            onViewActivityLog={handleViewActivityLog}
+            onViewComments={handleViewComments}
+          />
+        )}
+
+        {isTeamChatOpen && (
+          <TeamChat
+            messages={chatMessages}
+            currentUser={user}
+            onSendMessage={handleSendChatMessage}
+            onClose={handleCloseTeamChat}
+            allUsers={data.users}
+          />
+        )}
+
+        {isDataManagerOpen && (
+          <DataManager
+            data={data}
+            onImportData={setData}
+            onClose={() => setIsDataManagerOpen(false)}
+          />
+        )}
+      </div>
+    </ThemeProvider>
   );
 }
 
-const AppWithTheme = () => {
-  return (
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
-  );
-};
-
-export default AppWithTheme;
+export default App;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Login.css';
+import { authService } from '../../services/authService.js';
 
 const Login = ({ onLogin, onGoToRegister }) => {
   const [formData, setFormData] = useState({
@@ -52,33 +53,32 @@ const Login = ({ onLogin, onGoToRegister }) => {
 
     setIsLoading(true);
 
-    // Simula uma chamada de API
-    setTimeout(() => {
-      // Aqui você faria a validação real com backend
-      // Por enquanto, vamos simular um login básico
-      const validUsers = [
-        { email: 'admin@boardsync.com', password: '123456' },
-        { email: 'user@boardsync.com', password: '123456' },
-        { email: 'demo@boardsync.com', password: 'demo123' }
-      ];
-
-      const user = validUsers.find(
-        u => u.email === formData.email && u.password === formData.password
-      );
-
-      if (user) {
-        onLogin({
-          id: 'user-' + Date.now(),
-          email: user.email,
-          name: user.email.split('@')[0],
-          isAuthenticated: true
-        });
-      } else {
-        setErrors({ general: 'Email ou senha incorretos' });
-      }
+    try {
+      console.log('🔐 Tentando login com API:', formData.email);
       
+      // Usar o authService para fazer login real na API
+      const response = await authService.login(formData.email, formData.password);
+      
+      console.log('✅ Login bem-sucedido:', response);
+      
+      // Chamar a função onLogin do App.jsx com os dados do usuário
+      onLogin({
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
+        role: response.user.role || 'member',
+        isAuthenticated: true,
+        token: response.token
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro no login:', error);
+      setErrors({ 
+        general: error.message || 'Email ou senha incorretos' 
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

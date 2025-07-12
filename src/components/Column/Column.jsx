@@ -76,39 +76,88 @@ const Column = ({ column, cards, totalCards, allCards, allLabels, allUsers, tota
   };
   const handleDragOver = (e) => {
     e.preventDefault();
-    console.log('📍 Arrastando sobre a coluna:', column.title);
+    console.log('📍 Column.handleDragOver: Arrastando sobre a coluna:', column.title);
     e.dataTransfer.dropEffect = 'move';
     
-    // Adicionar classe visual
-    e.currentTarget.querySelector('.column-content').classList.add('drag-over');
+    // Adicionar classe visual de forma segura
+    const columnContent = e.currentTarget.querySelector('.column-content');
+    if (columnContent) {
+      columnContent.classList.add('drag-over');
+    }
   };
 
   const handleDragLeave = (e) => {
-    console.log('🚪 Saindo da coluna:', column.title);
+    console.log('🚪 Column.handleDragLeave: Saindo da coluna:', column.title);
     
-    // Remover classe visual
-    e.currentTarget.querySelector('.column-content').classList.remove('drag-over');
+    // Verificar se realmente saiu da coluna (não apenas de um filho)
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      const columnContent = e.currentTarget.querySelector('.column-content');
+      if (columnContent) {
+        columnContent.classList.remove('drag-over');
+      }
+    }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    console.log('🎯 Soltando card na coluna:', column.title);
-    
-    // Obter dados do card
-    const cardId = e.dataTransfer.getData('cardId');
-    const sourceColumn = e.dataTransfer.getData('sourceColumn');
-    
-    console.log('📦 Dados recebidos:', { cardId, sourceColumn, targetColumn: column.id });
+    console.log('🎯 Column.handleDrop: Tentando soltar card na coluna:', column.title);
     
     // Remover classe visual
-    e.currentTarget.querySelector('.column-content').classList.remove('drag-over');
+    const columnContent = e.currentTarget.querySelector('.column-content');
+    if (columnContent) {
+      columnContent.classList.remove('drag-over');
+    }
     
-    // Mover o card se for de colunas diferentes
-    if (sourceColumn && cardId && sourceColumn !== column.id) {
-      console.log('✨ Movendo card de', sourceColumn, 'para', column.id);
-      onMoveCard(cardId, sourceColumn, column.id);
-    } else {
-      console.log('❌ Movimento cancelado - mesma coluna ou dados inválidos');
+    try {
+      // Obter dados do card de múltiplas formas (compatibilidade)
+      let cardId = e.dataTransfer.getData('cardId') || e.dataTransfer.getData('text/plain');
+      let sourceColumn = e.dataTransfer.getData('sourceColumn');
+      
+      console.log('📦 Column.handleDrop: Dados brutos recebidos:', {
+        cardId,
+        sourceColumn,
+        targetColumn: column.id,
+        dataTransferTypes: Array.from(e.dataTransfer.types)
+      });
+      
+      // Validações
+      if (!cardId) {
+        console.error('❌ Column.handleDrop: cardId não encontrado');
+        return;
+      }
+      
+      if (!sourceColumn) {
+        console.error('❌ Column.handleDrop: sourceColumn não encontrado');
+        return;
+      }
+      
+      if (!column.id) {
+        console.error('❌ Column.handleDrop: targetColumn inválido');
+        return;
+      }
+      
+      // Verificar se é movimento válido
+      if (sourceColumn === column.id) {
+        console.log('ℹ️ Column.handleDrop: Movimento na mesma coluna, cancelado');
+        return;
+      }
+      
+      console.log('✨ Column.handleDrop: Iniciando movimento do card', {
+        cardId,
+        from: sourceColumn,
+        to: column.id
+      });
+      
+      // Executar movimento
+      if (onMoveCard && typeof onMoveCard === 'function') {
+        onMoveCard(cardId, sourceColumn, column.id);
+        console.log('✅ Column.handleDrop: Movimento executado com sucesso');
+      } else {
+        console.error('❌ Column.handleDrop: onMoveCard não é uma função válida');
+      }
+      
+    } catch (error) {
+      console.error('❌ Column.handleDrop: Erro durante o drop', error);
     }
   };
 
@@ -121,6 +170,8 @@ const Column = ({ column, cards, totalCards, allCards, allLabels, allUsers, tota
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      data-column-id={column.id}
+      data-column-title={column.title}
     >
       <div className="column-header">
         <div className="column-title-section">

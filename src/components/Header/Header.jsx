@@ -2,7 +2,7 @@ import React from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import './Header.css';
 
-const Header = ({ user, onManageLabels, onManageUsers, onManageThemes, onViewActivities, onOpenTeamChat, onManageData, onLogout }) => {
+const Header = ({ user, onManageLabels, onManageUsers, onManageThemes, onViewActivities, onOpenTeamChat, onManageData, onResetBoard, onLogout }) => {
   return (
     <header className="header">
       <div className="header-content">
@@ -49,6 +49,29 @@ const Header = ({ user, onManageLabels, onManageUsers, onManageThemes, onViewAct
             title="Exportar/Importar Dados"
           >
             💾 Dados
+          </button>
+          <button 
+            className="header-btn reset-btn"
+            onClick={() => {
+              console.log('🔍 Header: Botão limpar clicado');
+              console.log('🔍 Header: onResetBoard tipo:', typeof onResetBoard);
+              
+              if (onResetBoard && typeof onResetBoard === 'function') {
+                console.log('🔍 Header: Chamando onResetBoard');
+                onResetBoard();
+              } else {
+                console.error('❌ Header: onResetBoard não está definido ou não é uma função');
+                
+                // Fallback: implementar reset básico aqui
+                if (confirm('⚠️ Tem certeza que deseja limpar o board? (Funcionalidade de fallback)')) {
+                  console.log('🔄 Header: Executando reset via fallback - recarregando página');
+                  window.location.reload();
+                }
+              }
+            }}
+            title="Limpar Board - Resetar todos os dados"
+          >
+            🧹 Limpar
           </button>
           
           <div className="user-info">

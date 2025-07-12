@@ -57,6 +57,18 @@
   transform: translateY(0);
 }
 
+/* Estilo específico para o botão de reset */
+.header-btn.reset-btn {
+  background: rgba(255, 87, 87, 0.2);
+  border-color: rgba(255, 87, 87, 0.4);
+}
+
+.header-btn.reset-btn:hover {
+  background: rgba(255, 87, 87, 0.3);
+  border-color: rgba(255, 87, 87, 0.6);
+  transform: translateY(-1px);
+}
+
 /* User info section */
 .user-info {
   display: flex;

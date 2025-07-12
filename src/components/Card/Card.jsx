@@ -98,31 +98,62 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onOpenCardDetail,
   };
 
   const handleDragStart = (e) => {
-    console.log('🚀 Iniciando arraste do card:', card.title);
+    console.log('🚀 Card.handleDragStart: Iniciando arraste do card:', card.title);
+    console.log('📍 Card.handleDragStart: Card ID:', card.id, 'Column ID:', columnId);
     
-    // Armazenar dados do card sendo arrastado
-    e.dataTransfer.setData('cardId', card.id);
-    e.dataTransfer.setData('sourceColumn', columnId);
-    e.dataTransfer.effectAllowed = 'move';
+    // Validações básicas
+    if (!card.id || !columnId) {
+      console.error('❌ Card.handleDragStart: Dados inválidos', { cardId: card.id, columnId });
+      e.preventDefault();
+      return;
+    }
+
+    if (card.isBlocked) {
+      console.warn('🚫 Card.handleDragStart: Card bloqueado, drag cancelado');
+      e.preventDefault();
+      return;
+    }
     
-    // Feedback visual diferente para cards com subtarefas
-    e.target.style.opacity = '0.5';
-    e.target.style.transform = hasSubtasks ? 'rotate(5deg) scale(1.02)' : 'rotate(5deg)';
-    
-    // Log informativo
-    if (isCardSubtask && parentCard) {
-      console.log(`📦 Movendo subtarefa que irá mover o card pai "${parentCard.title}" e todas suas subtarefas`);
-    } else if (hasSubtasks) {
-      console.log(`📦 Movendo card principal com ${subtasks.length} subtarefas`);
+    try {
+      // Armazenar dados do card sendo arrastado
+      e.dataTransfer.setData('text/plain', card.id); // Fallback para compatibilidade
+      e.dataTransfer.setData('cardId', card.id);
+      e.dataTransfer.setData('sourceColumn', columnId);
+      e.dataTransfer.effectAllowed = 'move';
+      
+      // Verificar se os dados foram definidos corretamente
+      console.log('📦 Card.handleDragStart: Dados definidos:', {
+        cardId: card.id,
+        sourceColumn: columnId,
+        effectAllowed: e.dataTransfer.effectAllowed
+      });
+      
+      // Feedback visual diferente para cards com subtarefas
+      e.target.style.opacity = '0.5';
+      e.target.style.transform = hasSubtasks ? 'rotate(2deg) scale(1.02)' : 'rotate(2deg)';
+      e.target.style.cursor = 'grabbing';
+      
+      // Log informativo sobre relações
+      if (isCardSubtask && parentCard) {
+        console.log(`📦 Card.handleDragStart: Movendo subtarefa (pai: "${parentCard.title}")`);
+      } else if (hasSubtasks) {
+        console.log(`📦 Card.handleDragStart: Movendo card principal com ${subtasks.length} subtarefas`);
+      } else {
+        console.log(`📦 Card.handleDragStart: Movendo card individual`);
+      }
+    } catch (error) {
+      console.error('❌ Card.handleDragStart: Erro ao configurar drag', error);
+      e.preventDefault();
     }
   };
 
   const handleDragEnd = (e) => {
-    console.log('✅ Finalizando arraste do card:', card.title);
+    console.log('✅ Card.handleDragEnd: Finalizando arraste do card:', card.title);
     
     // Remover feedback visual
     e.target.style.opacity = '1';
     e.target.style.transform = 'none';
+    e.target.style.cursor = 'grab';
   };
 
   const handleEdit = () => {
@@ -138,6 +169,8 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onOpenCardDetail,
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       title={card.isBlocked ? `Card bloqueado: ${card.blockReason}` : getDragTitle()}
+      data-card-id={card.id}
+      data-column-id={columnId}
     >
       {isCardSubtask && parentCard && (
         <div className="subtask-header">

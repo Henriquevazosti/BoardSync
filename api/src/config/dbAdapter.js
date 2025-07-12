@@ -4,14 +4,33 @@ import logger from './logger.js';
 // Adaptador universal de banco de dados
 class DatabaseAdapter {
   constructor() {
-    this.isPostgres = process.env.DB_TYPE !== 'sqlite';
+    this.isPostgres = process.env.DB_TYPE === 'postgres' || process.env.DB_TYPE === 'postgresql';
     this.db = null;
+    this.sqliteInitialized = false;
+    
+    // Forçar SQLite se não especificado
+    if (!process.env.DB_TYPE || process.env.DB_TYPE === 'sqlite') {
+      this.isPostgres = false;
+    }
+  }
+
+  async initSQLite() {
+    if (!this.sqliteInitialized && !this.isPostgres) {
+      try {
+        // O SQLite já foi conectado no server.js, só precisamos marcar como inicializado
+        this.sqliteInitialized = true;
+        logger.info('✅ SQLite adapter initialized successfully');
+      } catch (error) {
+        logger.error('❌ SQLite initialization failed:', error.message);
+        throw error;
+      }
+    }
   }
 
   async getPostgresDb() {
     if (!this.db && this.isPostgres) {
-      const { db } = await import('./database.js');
-      this.db = db;
+      const { connectDatabase } = await import('./database.js');
+      this.db = await connectDatabase();
     }
     return this.db;
   }
@@ -23,6 +42,7 @@ class DatabaseAdapter {
         const db = await this.getPostgresDb();
         return await db(table).where(where).first();
       } else {
+        await this.initSQLite();
         const whereClause = Object.keys(where)
           .map(key => `${key} = ?`)
           .join(' AND ');
@@ -54,6 +74,7 @@ class DatabaseAdapter {
         }
         return await query;
       } else {
+        await this.initSQLite();
         let sql = `SELECT * FROM ${table}`;
         let values = [];
         
@@ -89,6 +110,7 @@ class DatabaseAdapter {
         const [result] = await db(table).insert(data).returning('*');
         return result;
       } else {
+        await this.initSQLite();
         const columns = Object.keys(data);
         const placeholders = columns.map(() => '?').join(', ');
         const values = Object.values(data);
@@ -113,6 +135,7 @@ class DatabaseAdapter {
         const [result] = await db(table).where(where).update(data).returning('*');
         return result;
       } else {
+        await this.initSQLite();
         const setClause = Object.keys(data)
           .map(key => `${key} = ?`)
           .join(', ');
@@ -141,6 +164,7 @@ class DatabaseAdapter {
         const db = await this.getPostgresDb();
         return await db(table).where(where).del();
       } else {
+        await this.initSQLite();
         const whereClause = Object.keys(where)
           .map(key => `${key} = ?`)
           .join(' AND ');
@@ -163,6 +187,7 @@ class DatabaseAdapter {
         const db = await this.getPostgresDb();
         return await db.raw(sql, params);
       } else {
+        await this.initSQLite();
         return sqlite.query(sql, params);
       }
     } catch (error) {

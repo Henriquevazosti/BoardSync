@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Register.css';
+import { authService } from '../../services/authService.js';
 
 const Register = ({ onRegister, onGoToLogin }) => {
   const [formData, setFormData] = useState({
@@ -73,31 +74,45 @@ const Register = ({ onRegister, onGoToLogin }) => {
 
     setIsLoading(true);
 
-    // Simula uma chamada de API para registro
-    setTimeout(() => {
-      // Simula verificação se email já existe
-      const existingEmails = ['admin@boardsync.com', 'user@boardsync.com'];
+    try {
+      console.log('📝 Tentando registrar usuário:', formData.email);
       
-      if (existingEmails.includes(formData.email.toLowerCase())) {
-        setErrors({ email: 'Este email já está em uso' });
-        setIsLoading(false);
-        return;
-      }
-
-      // Simula criação de usuário
-      const newUser = {
-        id: 'user-' + Date.now(),
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        email: formData.email.toLowerCase(),
+      // Preparar dados para envio à API
+      const registerData = {
         name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-        isAuthenticated: true,
-        createdAt: new Date().toISOString()
+        email: formData.email.toLowerCase(),
+        password: formData.password
       };
-
-      onRegister(newUser);
+      
+      // Usar o authService para fazer registro real na API
+      const response = await authService.register(registerData);
+      
+      console.log('✅ Registro bem-sucedido:', response);
+      
+      // Chamar a função onRegister do App.jsx com os dados do usuário
+      onRegister({
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
+        role: response.user.role || 'member',
+        isAuthenticated: true,
+        token: response.token
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro no registro:', error);
+      
+      // Tratar diferentes tipos de erro
+      if (error.message.includes('já existe') || error.message.includes('already exists')) {
+        setErrors({ email: 'Este email já está em uso' });
+      } else {
+        setErrors({ 
+          general: error.message || 'Erro ao criar conta. Tente novamente.' 
+        });
+      }
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleCancel = () => {
@@ -117,6 +132,11 @@ const Register = ({ onRegister, onGoToLogin }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="register-form">
+          {errors.general && (
+            <div className="error-message general-error">
+              {errors.general}
+            </div>
+          )}
           <div className="name-row">
             <div className="form-group half-width">
               <label htmlFor="firstName">Nome *</label>
