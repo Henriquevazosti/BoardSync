@@ -1,42 +1,49 @@
 # 📋 BoardSync
 
-Um sistema completo de gerenciamento de projetos estilo Kanban, inspirado no Trello e Jira, desenvolvido com React e funcionalidades avançadas.
+Um sistema completo de gerenciamento de projetos estilo Kanban, inspirado no Trello e Jira, desenvolvido com React no frontend e Node.js no backend.
 
 ![BoardSync](https://img.shields.io/badge/React-18+-blue.svg)
-![Status](https://img.shields.io/badge/Status-Completo-success.svg)
+![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)
+![Status](https://img.shields.io/badge/Status-Produção-success.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 ## 🚀 Funcionalidades
 
 ### 🔐 **Sistema de Autenticação**
 - ✅ Login e registro de usuários
+- ✅ Autenticação JWT
 - ✅ Proteção de rotas
-- ✅ Gerenciamento de sessão
-- ✅ Validação de formulários
+- ✅ Sessão persistente
 
 ### 📋 **Quadro Kanban Avançado**
 - ✅ Drag & Drop nativo entre colunas
 - ✅ Sistema de categorias completo:
-  - 📖 **História** - Funcionalidades do usuário
-  - 🎯 **Épico** - Grandes iniciativas
-  - 🐛 **Bug** - Correções necessárias
-  - ⚡ **Atividade** - Tarefas gerais
-  - 🔧 **Subtarefas** - Sub Teste, Sub Bug, Atividade Complementar
+  - 📖 **Criação** - Funcionalidades do usuário
+  - 🎯 **Troca** - Grandes iniciativas
+  - ❌ **Erro** - Correções necessárias
+  - ⚡ **Full** - Tarefas gerais
+  - 🔧 **Subtarefas** - Erro no pedido, Estorno, Atividade Complementar
 - ✅ Filtros visuais por tipo
 - ✅ Hierarquia pai-filho para subtarefas
 
 ### 👥 **Gestão de Usuários**
 - ✅ Sistema completo de usuários
 - ✅ Atribuição de cards a pessoas
-- ✅ Avatars personalizados (24 opções)
+- ✅ Avatars personalizados
 - ✅ Cores customizáveis por usuário
 - ✅ Gerenciamento CRUD de usuários
 
-### 🏷️ **Sistema de Labels/Tags**
-- ✅ Criação e edição de labels
-- ✅ 10 cores predefinidas
+### 🏷️ **Sistema de Labels para E-commerce**
+- ✅ Labels especializadas para transportadoras:
+  - 📦 Correios
+  - 🛒 Mercado Livre
+  - 🛍️ Shopee
+  - 🏪 Americanas
+  - 💊 FisioSmart
+  - 🌟 Temu
+  - 🏬 Magazine Luiza
+- ✅ Logos e cores personalizadas
 - ✅ Aplicação múltipla nos cards
-- ✅ Gerenciamento visual
 
 ### 📅 **Datas e Prazos**
 - ✅ Datas de vencimento nos cards
@@ -46,7 +53,238 @@ Um sistema completo de gerenciamento de projetos estilo Kanban, inspirado no Tre
   - 🟡 **Vence hoje** - Urgente (com animação)
   - 🔴 **Vencido** - Atrasado (com animação)
 - ✅ Filtros por status de prazo
-- ✅ Estatísticas em tempo real
+
+### 🎯 **Recursos Avançados**
+- ✅ **Prioridades**: Baixa, Média, Alta (com cores)
+- ✅ **Bloqueio de cards** com motivos
+- ✅ **Histórico de atividades** completo
+- ✅ **Comentários** nos cards
+- ✅ **Upload de anexos** (imagens, documentos)
+- ✅ **Sistema de busca** por título/descrição
+- ✅ **Temas** claro e escuro
+- ✅ **Exportação/Importação** de dados JSON
+
+### 💾 **Sistema de Dados**
+- ✅ **Exportação completa** de boards em JSON
+- ✅ **Importação segura** com validação
+- ✅ **Backup automático** dos dados
+- ✅ **Estrutura versionada** para compatibilidade
+
+## 🏗️ Arquitetura
+
+### Frontend (React + Vite)
+```
+src/
+├── components/           # Componentes React
+│   ├── Card/            # Cards do Kanban
+│   ├── Column/          # Colunas do board
+│   ├── Header/          # Cabeçalho da aplicação
+│   ├── Login/           # Sistema de autenticação
+│   ├── LabelManager/    # Gerenciamento de labels
+│   ├── UserManager/     # Gerenciamento de usuários
+│   └── ...              # Outros componentes
+├── contexts/            # Contextos React (Tema, Auth)
+├── data/               # Dados iniciais e configurações
+├── services/           # Serviços de API
+├── styles/             # Estilos CSS e temas
+└── utils/              # Utilitários e helpers
+```
+
+### Backend (Node.js + Express)
+```
+api/
+├── src/
+│   ├── server.js        # Servidor principal
+│   ├── config/          # Configurações (DB, JWT)
+│   ├── controllers/     # Controladores da API
+│   ├── middlewares/     # Middlewares (auth, validation)
+│   ├── routes/          # Rotas da API REST
+│   └── database/        # Migrations e schemas
+├── database/            # Banco SQLite
+└── uploads/             # Arquivos enviados
+```
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+- Node.js 18+
+- npm ou yarn
+
+### 🏁 Subindo o ambiente completo (Backend + Frontend)
+
+#### 1. Subir o Backend (API)
+
+```powershell
+cd api
+npm install
+npm run dev:sqlite
+```
+
+O backend estará disponível em: http://localhost:3001
+
+#### 2. Subir o Frontend (React)
+
+Abra um novo terminal, volte para a raiz do projeto:
+
+```powershell
+cd ..
+npm install
+npm run dev
+```
+
+O frontend estará disponível em: http://localhost:3000
+
+### 📝 Dica rápida
+- Sempre rode `npm install` na primeira vez ou após atualizar dependências.
+- O comando `npm run dev:sqlite` já prepara o banco SQLite automaticamente.
+- Para resetar o banco, apague o arquivo `api/database/boardsync.db` e rode novamente.
+
+### 🐳 Opção Docker (Alternativa)
+
+1. **Instalar Docker Desktop:**
+   - Baixe em: https://www.docker.com/products/docker-desktop/
+
+2. **Executar com Docker:**
+   ```bash
+   cd api
+   npm run docker:setup
+   npm run docker:up
+   ```
+
+## 🎯 Como Usar
+
+### 1. **Primeiro Acesso**
+- Acesse a aplicação em http://localhost:3000
+- Crie uma conta na tela de registro
+- Faça login com suas credenciais
+
+### 2. **Criando Cards**
+- Clique em "Adicionar um cartão" em qualquer coluna
+- Preencha título, descrição, prioridade
+- Selecione categoria e tipo
+- Atribua usuários e labels de transportadoras
+- Defina data de vencimento (opcional)
+- Anexe arquivos se necessário
+
+### 3. **Gerenciando o Board**
+- **Mover cards:** Arraste entre colunas
+- **Editar:** Clique no card para abrir detalhes
+- **Filtrar:** Use os filtros superiores por categoria e prazo
+- **Bloquear:** Use o botão de bloqueio nos cards
+
+### 4. **Personalizando**
+- **Usuários:** Botão "👥 Dados" > "Usuários" no header
+- **Labels:** Botão "🏷️" no modal de criação de cards
+- **Temas:** Botão "🎨 Temas" no header
+- **Dados:** Exportar/Importar via botão "💾 Dados"
+
+## 📊 Funcionalidades Detalhadas
+
+### **Cards Inteligentes**
+- Indicadores de prioridade coloridos
+- Status visual de prazos com animações
+- Avatars de usuários atribuídos
+- Labels de transportadoras com logos
+- Contador de comentários e anexos
+- Indicação de bloqueios com motivos
+
+### **Drag & Drop Avançado**
+- Movimentação fluida entre colunas
+- Feedback visual durante arraste
+- Validação de movimentos permitidos
+- Atualização automática de status
+
+### **Sistema de Exportação/Importação**
+- **Exportação**: Gera arquivo JSON completo com todos os dados
+- **Importação**: Aceita upload de arquivo ou colagem de JSON
+- **Validação**: Verifica integridade e estrutura dos dados
+- **Backup**: Preserva dados existentes antes da importação
+
+## 🛠️ API e Desenvolvimento
+
+### Endpoints Principais
+```
+POST   /api/v1/auth/login          # Login
+POST   /api/v1/auth/register       # Registro
+GET    /api/v1/workspaces          # Listar workspaces
+GET    /api/v1/boards/:id          # Obter board
+POST   /api/v1/cards               # Criar card
+PUT    /api/v1/cards/:id           # Atualizar card
+```
+
+### Testando a API
+Use a collection Postman incluída:
+- `api/BoardSync-API-Collection.postman_collection.json`
+- `api/BoardSync-API-Environment.postman_environment.json`
+
+### Banco de Dados
+- **Desenvolvimento**: SQLite (automático)
+- **Produção**: PostgreSQL (configurável)
+- **Schema**: Totalmente documentado em `api/database/schema.sql`
+
+## 🔧 Configuração Avançada
+
+### Variáveis de Ambiente (Backend)
+```bash
+# api/.env
+DB_TYPE=sqlite                    # ou postgresql
+JWT_SECRET=sua-chave-secreta
+PORT=3001
+DATABASE_URL=sqlite:./database/boardsync.db
+```
+
+### Scripts Disponíveis
+```bash
+# Frontend
+npm run dev          # Desenvolvimento
+npm run build        # Build para produção
+npm run preview      # Preview do build
+
+# Backend
+npm run dev          # Desenvolvimento com nodemon
+npm run dev:sqlite   # Desenvolvimento com SQLite
+npm start            # Produção
+npm run db:setup     # Configurar banco
+```
+
+## 🎨 Temas e Personalização
+
+O sistema inclui temas completos:
+- **Tema Claro**: Interface limpa e moderna
+- **Tema Escuro**: Reduz fadiga visual
+- **Cores Personalizáveis**: Variáveis CSS para fácil customização
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📝 Roadmap
+
+- [ ] **Notificações em tempo real** - WebSocket
+- [ ] **Time Tracking** - Controle de tempo nas tarefas
+- [ ] **Reports** - Relatórios e dashboards
+- [ ] **Mobile App** - App React Native
+- [ ] **Integrações** - Slack, Discord, Email
+- [ ] **Templates** - Boards pré-configurados
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 👨‍💻 Autor
+
+**Desenvolvido com ❤️ por Henrique Vazosti**
+
+- GitHub: [@Henriquevazosti](https://github.com/Henriquevazosti)
+- Email: henrique.vazosti@gmail.com
+
+---
+
+⭐ **Se este projeto te ajudou, deixe uma estrela!** ⭐
 
 ### 🚫 **Sistema de Bloqueio**
 - ✅ Bloqueio de cards com motivo

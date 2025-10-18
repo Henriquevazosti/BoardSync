@@ -1,13 +1,84 @@
-# BoardSync API
+# BoardSync API# BoardSync API
 
-API REST profissional para o sistema de gerenciamento de tarefas BoardSync.
 
-## 📋 Sumário
 
-- [Configuração](#configuração)
-- [Autenticação](#autenticação)
-- [Endpoints](#endpoints)
-- [Modelos de Dados](#modelos-de-dados)
+API REST para o sistema BoardSync. Documentação completa disponível no [README principal](../README.md).API REST para o sistema BoardSync. Documentação completa disponível no [README principal](../README.md).
+
+
+
+## 🚀 Início Rápido## 🚀 Início Rápido
+
+
+
+```bash```bash
+
+# Instalar dependências# Instalar dependências
+
+npm installnpm install
+
+
+
+# Executar com SQLite (desenvolvimento)# Executar com SQLite (desenvolvimento)
+
+npm run dev:sqlitenpm run dev:sqlite
+
+
+
+# Executar com PostgreSQL# Executar com PostgreSQL
+
+npm run devnpm run dev
+
+``````
+
+
+
+## 📋 Endpoints Principais## 📋 Endpoints Principais
+
+
+
+``````
+
+POST   /api/v1/auth/login          # LoginPOST   /api/v1/auth/login          # Login
+
+POST   /api/v1/auth/register       # Registro  POST   /api/v1/auth/register       # Registro  
+
+GET    /api/v1/workspaces          # Listar workspacesGET    /api/v1/workspaces          # Listar workspaces
+
+GET    /api/v1/boards/:id          # Obter boardGET    /api/v1/boards/:id          # Obter board
+
+POST   /api/v1/cards               # Criar cardPOST   /api/v1/cards               # Criar card
+
+PUT    /api/v1/cards/:id           # Atualizar cardPUT    /api/v1/cards/:id           # Atualizar card
+
+``````
+
+
+
+## 🧪 Testes## 🧪 Testes
+
+
+
+Use a collection Postman incluída:Use a collection Postman incluída:
+
+- `BoardSync-API-Collection.postman_collection.json`- `BoardSync-API-Collection.postman_collection.json`
+
+- `BoardSync-API-Environment.postman_environment.json`- `BoardSync-API-Environment.postman_environment.json`
+
+
+
+## ⚙️ Configuração## ⚙️ Configuração
+
+
+
+Veja o arquivo [SETUP.md](SETUP.md) para opções de configuração detalhadas.Veja o arquivo [SETUP.md](SETUP.md) para opções de configuração detalhadas.
+
+
+
+------
+
+
+
+Para documentação completa, consulte o [README principal](../README.md).Para documentação completa, consulte o [README principal](../README.md).
 - [WebSocket](#websocket)
 - [Tratamento de Erros](#tratamento-de-erros)
 
