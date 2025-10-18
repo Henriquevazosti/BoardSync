@@ -101,35 +101,54 @@ export const initialData = {
     }
   },
   labels: {
-    'label-1': {
-      id: 'label-1',
-      name: 'Frontend',
-      color: '#0052cc',
-      bgColor: '#e6f3ff'
+    'correios': {
+      id: 'correios',
+      name: 'Correios',
+      color: '#ffcc00',
+      bgColor: '#fffbe6',
+      logo: '/logos/correios.png'
     },
-    'label-2': {
-      id: 'label-2',
-      name: 'Backend',
-      color: '#00875a',
-      bgColor: '#e3fcef'
+    'mercado-livre': {
+      id: 'mercado-livre',
+      name: 'Mercado Livre',
+      color: '#ffe600',
+      bgColor: '#fffde6',
+      logo: '/logos/mercado-livre.png'
     },
-    'label-3': {
-      id: 'label-3',
-      name: 'Urgente',
-      color: '#de350b',
-      bgColor: '#ffebe6'
+    'shopee': {
+      id: 'shopee',
+      name: 'Shopee',
+      color: '#ff5722',
+      bgColor: '#fff3e0',
+      logo: '/logos/shopee.png'
     },
-    'label-4': {
-      id: 'label-4',
-      name: 'API',
-      color: '#6554c0',
-      bgColor: '#f3f0ff'
+    'americanas': {
+      id: 'americanas',
+      name: 'Americanas',
+      color: '#e60014',
+      bgColor: '#ffe6ea',
+      logo: '/logos/americanas.png'
     },
-    'label-5': {
-      id: 'label-5',
-      name: 'Documentação',
+    'fisiosmart': {
+      id: 'fisiosmart',
+      name: 'FisioSmart',
       color: '#00b8d9',
-      bgColor: '#e6fcff'
+      bgColor: '#e6fcff',
+      logo: '/logos/fisiosmart.png'
+    },
+    'temu': {
+      id: 'temu',
+      name: 'Temu',
+      color: '#ff7f00',
+      bgColor: '#fff7e6',
+      logo: '/logos/temu.png'
+    },
+    'magalu': {
+      id: 'magalu',
+      name: 'Magazine Luiza',
+      color: '#0074c1',
+      bgColor: '#e6f3ff',
+      logo: '/logos/magalu.png'
     }
   },
   cards: {

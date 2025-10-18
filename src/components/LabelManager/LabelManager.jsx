@@ -79,13 +79,25 @@ const LabelManager = ({ labels, onClose, onCreateLabel, onEditLabel, onDeleteLab
               {Object.values(labels).map((label) => (
                 <div key={label.id} className="label-item">
                   <div 
-                    className="label-preview"
+                    className="label-preview label-content"
                     style={{
                       backgroundColor: label.bgColor,
-                      color: label.color
+                      color: label.color,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px 0'
                     }}
                   >
-                    {label.name}
+                    {label.logo && (
+                      <img
+                        src={label.logo}
+                        alt={label.name}
+                        style={{ width: 80, height: 40, objectFit: 'contain', marginBottom: 4, display: 'block' }}
+                      />
+                    )}
+                    <span style={{ fontWeight: 500 }}>{label.name}</span>
                   </div>
                   <div className="label-actions">
                     <button 
