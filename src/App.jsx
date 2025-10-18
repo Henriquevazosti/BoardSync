@@ -928,31 +928,30 @@ function App() {
           />
         )}
 
-        {isUserManagerOpen && (
-          <UserManager
-            users={data.users}
-            onSave={handleSaveUsers}
-            onClose={() => setIsUserManagerOpen(false)}
-            onSyncUsers={syncUsers}
-          />
-        )}
+        <UserManager
+          isOpen={isUserManagerOpen}
+          users={data.users}
+          onSave={handleSaveUsers}
+          onClose={() => setIsUserManagerOpen(false)}
+          onSyncUsers={syncUsers}
+        />
 
-        {isThemeSelectorOpen && (
-          <ThemeSelector onClose={() => setIsThemeSelectorOpen(false)} />
-        )}
+        <ThemeSelector
+          isOpen={isThemeSelectorOpen}
+          onClose={() => setIsThemeSelectorOpen(false)}
+        />
 
-        {isActivityLogOpen && (
-          <ActivityLog
-            activities={Object.values(data.activities)}
-            allCards={data.cards}
-            allUsers={data.users}
-            cardId={activityLogCardId}
-            onClose={() => {
-              setIsActivityLogOpen(false);
-              setActivityLogCardId(null);
-            }}
-          />
-        )}
+        <ActivityLog
+          isOpen={isActivityLogOpen}
+          activities={Object.values(data.activities)}
+          users={data.users}
+          cards={data.cards}
+          cardId={activityLogCardId}
+          onClose={() => {
+            setIsActivityLogOpen(false);
+            setActivityLogCardId(null);
+          }}
+        />
 
         {isCommentsModalOpen && selectedCardForComments && (
           <CommentsModal
@@ -988,23 +987,21 @@ function App() {
           />
         )}
 
-        {isTeamChatOpen && (
-          <TeamChat
-            messages={chatMessages}
-            currentUser={user}
-            onSendMessage={handleSendChatMessage}
-            onClose={handleCloseTeamChat}
-            allUsers={data.users}
-          />
-        )}
+        <TeamChat
+          isOpen={isTeamChatOpen}
+          messages={chatMessages}
+          currentUser={user}
+          onSendMessage={handleSendChatMessage}
+          onClose={handleCloseTeamChat}
+          allUsers={data.users}
+        />
 
-        {isDataManagerOpen && (
-          <DataManager
-            data={data}
-            onImportData={setData}
-            onClose={() => setIsDataManagerOpen(false)}
-          />
-        )}
+        <DataManager
+          isOpen={isDataManagerOpen}
+          data={data}
+          onImportData={setData}
+          onClose={() => setIsDataManagerOpen(false)}
+        />
       </div>
     </ThemeProvider>
   );
