@@ -60,7 +60,7 @@ const CardDetailView = ({
   const cardLabels = getCardLabels(card, allLabels || {});
   const assignedUsers = getCardAssignedUsers(card, allUsers || {});
   const dueDateStatus = getDueDateStatus(card.dueDate);
-  const cardComments = comments.filter(comment => comment.cardId === card.id);
+  const cardComments = (comments || []).filter(comment => comment.cardId === card.id);
 
   const handleSave = () => {
     const updatedCard = {

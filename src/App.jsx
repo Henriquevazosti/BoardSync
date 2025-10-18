@@ -975,7 +975,7 @@ function App() {
             allCards={data.cards}
             allLabels={data.labels}
             allUsers={data.users}
-            onUpdateCard={handleUpdateCard}
+            onSave={handleUpdateCard}
             onClose={() => {
               setIsCardDetailOpen(false);
               setSelectedCardForDetail(null);

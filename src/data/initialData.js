@@ -53,7 +53,7 @@ export const initialData = {
       newValue: {
         title: 'Configurar ambiente de desenvolvimento',
         priority: 'alta',
-        category: 'historia'
+  category: 'criacao'
       }
     },
     'activity-2': {
@@ -138,7 +138,7 @@ export const initialData = {
       title: 'Configurar ambiente de desenvolvimento',
       description: 'Configurar ambiente de desenvolvimento e dependências iniciais do projeto',
       priority: 'alta',
-      category: 'historia',
+  category: 'criacao',
       isBlocked: false,
       blockReason: '',
       labels: ['label-1', 'label-2'],
@@ -152,7 +152,7 @@ export const initialData = {
       title: 'Sistema de autenticação',
       description: 'Implementar login, registro e controle de acesso de usuários',
       priority: 'alta',
-      category: 'epico',
+  category: 'troca',
       isBlocked: true,
       blockReason: 'Aguardando definição dos requisitos de segurança pela equipe de compliance',
       labels: ['label-2', 'label-3', 'label-4'],
@@ -166,7 +166,7 @@ export const initialData = {
       title: 'Implementar drag and drop',
       description: 'Adicionar funcionalidade de arrastar e soltar cards entre colunas',
       priority: 'media',
-      category: 'historia',
+  category: 'criacao',
       isBlocked: false,
       blockReason: '',
       labels: ['label-1'],
@@ -180,7 +180,7 @@ export const initialData = {
       title: 'Erro ao salvar card vazio',
       description: 'Sistema permite salvar cards sem título causando problemas na interface',
       priority: 'alta',
-      category: 'bug',
+  category: 'erro',
       isBlocked: false,
       blockReason: '',
       labels: ['label-1', 'label-3'],
@@ -194,7 +194,7 @@ export const initialData = {
       title: 'Documentação da API',
       description: 'Criar documentação completa dos endpoints da API',
       priority: 'baixa',
-      category: 'atividade',
+  category: 'full',
       isBlocked: false,
       blockReason: '',
       labels: ['label-5', 'label-4'],
@@ -208,7 +208,7 @@ export const initialData = {
       title: 'Deploy em produção',
       description: 'Configurar pipeline de CI/CD e fazer deploy da aplicação',
       priority: 'media',
-      category: 'atividade',
+  category: 'full',
       isBlocked: false,
       blockReason: '',
       labels: ['label-2'],
@@ -222,7 +222,7 @@ export const initialData = {
       title: 'Performance do carregamento',
       description: 'Cards demoram muito para carregar quando há muitos itens',
       priority: 'media',
-      category: 'bug',
+  category: 'erro',
       isBlocked: false,
       blockReason: '',
       labels: ['label-1', 'label-2'],
@@ -233,7 +233,7 @@ export const initialData = {
       title: 'Sistema de notificações',
       description: 'Implementar notificações em tempo real para mudanças no board',
       priority: 'baixa',
-      category: 'epico',
+  category: 'troca',
       isBlocked: false,
       blockReason: '',
       labels: ['label-1', 'label-2', 'label-4'],
@@ -244,7 +244,7 @@ export const initialData = {
       title: 'Teste de integração da API',
       description: 'Criar testes para validar integração com sistema de notificações',
       priority: 'media',
-      category: 'sub-teste',
+  category: 'erro no pedido',
       parentId: 'card-8',
       isBlocked: false,
       blockReason: '',
@@ -256,7 +256,7 @@ export const initialData = {
       title: 'Corrigir bug de conexão WebSocket',
       description: 'WebSocket não reconecta automaticamente após perda de conexão',
       priority: 'alta',
-      category: 'sub-bug',
+  category: 'estorno',
       parentId: 'card-8',
       isBlocked: false,
       blockReason: '',
@@ -268,7 +268,7 @@ export const initialData = {
       title: 'Documentar endpoints de notificação',
       description: 'Criar documentação detalhada dos novos endpoints',
       priority: 'baixa',
-      category: 'atividade-complementar',
+  category: 'atividade-complementar',
       parentId: 'card-8',
       isBlocked: false,
       blockReason: '',
@@ -303,41 +303,41 @@ export const initialData = {
 
 // Configurações das categorias
 export const categoryConfig = {
-  historia: {
-    name: 'História',
+  criacao: {
+    name: 'Criação',
     icon: '📖',
     color: '#0052cc',
     bgColor: '#e6f3ff'
   },
-  epico: {
-    name: 'Épico',
+  troca: {
+    name: 'Troca',
     icon: '🎯',
     color: '#6554c0',
     bgColor: '#f3f0ff'
   },
-  bug: {
-    name: 'Bug',
-    icon: '🐛',
+  erro: {
+    name: 'Erro',
+    icon: '❌',
     color: '#de350b',
     bgColor: '#ffebe6'
   },
-  atividade: {
-    name: 'Atividade',
+  full: {
+    name: 'Full',
     icon: '⚡',
     color: '#00875a',
     bgColor: '#e3fcef'
   },
   // Subcategorias
-  'sub-teste': {
-    name: 'Sub Teste',
-    icon: '🧪',
+  'erro no pedido': {
+    name: 'Erro no pedido',
+    icon: '📦',
     color: '#0065ff',
     bgColor: '#e6f4ff',
     isSubtask: true
   },
-  'sub-bug': {
-    name: 'Sub Bug',
-    icon: '🔧',
+  'estorno': {
+    name: 'Estorno',
+    icon: '🏧',
     color: '#ff5630',
     bgColor: '#ffebe6',
     isSubtask: true
