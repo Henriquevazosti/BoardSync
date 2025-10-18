@@ -12,7 +12,7 @@
     "test:api": "node test-api.js",
     "setup": "node setup-easy.js",
     "setup:sqlite": "node setup-sqlite.js",
-    "dev:sqlite": "DB_TYPE=sqlite nodemon src/server.js",
+    "dev:sqlite": "cross-env DB_TYPE=sqlite nodemon src/server.js",
     "start:sqlite": "DB_TYPE=sqlite node src/server.js",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
@@ -51,6 +51,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.8",
+    "cross-env": "^10.1.0",
     "jest": "^29.7.0",
     "nodemon": "^3.0.2",
     "supertest": "^6.3.3"
