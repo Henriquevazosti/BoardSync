@@ -286,7 +286,7 @@ function App() {
 
   const handleCreateCard = (newCard) => {
     const cardId = `card-${Date.now()}`;
-    
+
     const finalCard = {
       ...newCard,
       id: cardId,
@@ -294,10 +294,13 @@ function App() {
       createdBy: user ? user.id : 'user-1', // Usar ID do usuário logado ou padrão
       comments: []
     };
-    
+
     setData(prevData => {
       const column = prevData.columns[newCard.columnId];
-      
+      if (!column) {
+        alert('Coluna não encontrada ao criar o card. Por favor, selecione uma coluna válida.');
+        return prevData;
+      }
       return {
         ...prevData,
         cards: {
@@ -308,14 +311,14 @@ function App() {
           ...prevData.columns,
           [newCard.columnId]: {
             ...column,
-            cardIds: [...column.cardIds, cardId]
+            cardIds: Array.isArray(column.cardIds) ? [...column.cardIds, cardId] : [cardId]
           }
         }
       };
     });
-    
+
     setIsModalOpen(false);
-    
+
     // Registrar atividade
     addActivity(cardId, activityTypes.CARD_CREATED, `Card criado: ${newCard.title}`);
   };

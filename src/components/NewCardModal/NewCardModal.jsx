@@ -7,7 +7,7 @@ import MediaUpload from '../MediaUpload/MediaUpload';
 import DescriptionEditor from '../DescriptionEditor/DescriptionEditor';
 import './NewCardModal.css';
 
-const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, onManageLabels }) => {
+const NewCardModal = ({ columnId, onClose, onCreateCard, allCards, allLabels, allUsers, onManageLabels }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('media');
@@ -38,6 +38,7 @@ const NewCardModal = ({ onClose, onCreateCard, allCards, allLabels, allUsers, on
     e.preventDefault();
     if (title.trim()) {
       const cardData = {
+        columnId: columnId, // Adicionar o ID da coluna
         title: title.trim(),
         description: description.trim(),
         priority,

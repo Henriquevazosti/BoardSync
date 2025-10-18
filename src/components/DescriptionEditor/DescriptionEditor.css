@@ -343,8 +343,11 @@
 }
 
 /* Estilos para o editor visual */
+
 .visual-editor {
   position: relative;
+  direction: ltr;
+  unicode-bidi: plaintext;
 }
 
 .visual-editor:empty:before {
