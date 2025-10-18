@@ -841,7 +841,7 @@ function App() {
               <div className="filters-content">
                 <CategoryFilter 
                   selectedCategories={selectedCategories}
-                  onCategoryChange={setSelectedCategories}
+                  onCategoryToggle={setSelectedCategories}
                 />
                 <DueDateFilter 
                   selectedFilters={selectedDateFilters}
