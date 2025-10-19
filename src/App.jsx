@@ -926,7 +926,9 @@ function App() {
         {isLabelManagerOpen && (
           <LabelManager
             labels={data.labels}
-            onSave={handleSaveLabels}
+            onCreateLabel={createLabel}
+            onEditLabel={editLabel}
+            onDeleteLabel={deleteLabel}
             onClose={() => setIsLabelManagerOpen(false)}
           />
         )}

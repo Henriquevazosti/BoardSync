@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { labelColors, generateLabelId } from '../../data/initialData';
+// import { labelImageManager, resizeImage } from '../../utils/labelImageManager';
 import './LabelManager.css';
 
 const LabelManager = ({ labels, onClose, onCreateLabel, onEditLabel, onDeleteLabel }) => {
@@ -7,36 +8,106 @@ const LabelManager = ({ labels, onClose, onCreateLabel, onEditLabel, onDeleteLab
   const [editingLabel, setEditingLabel] = useState(null);
   const [newLabelName, setNewLabelName] = useState('');
   const [selectedColor, setSelectedColor] = useState(labelColors[0]);
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const fileInputRef = useRef(null);
 
-  const handleCreateLabel = (e) => {
+  const handleCreateLabel = async (e) => {
     e.preventDefault();
+    console.log('🚀 Tentando criar label:', { newLabelName, selectedColor });
     if (newLabelName.trim()) {
+      const labelId = generateLabelId();
+      let logoUrl = null;
+
+      // Se há uma imagem, usar diretamente o preview
+      if (logoPreview) {
+        logoUrl = logoPreview;
+      }
+
       const newLabel = {
-        id: generateLabelId(),
+        id: labelId,
         name: newLabelName.trim(),
         color: selectedColor.color,
-        bgColor: selectedColor.bgColor
+        bgColor: selectedColor.bgColor,
+        logo: logoUrl
       };
+      
+      console.log('✅ Label criada:', newLabel);
       onCreateLabel(newLabel);
-      setNewLabelName('');
-      setSelectedColor(labelColors[0]);
-      setIsCreating(false);
+      resetForm();
     }
   };
 
-  const handleEditLabel = (e) => {
+  const handleEditLabel = async (e) => {
     e.preventDefault();
+    console.log('🔄 Tentando editar label:', { newLabelName, selectedColor });
     if (newLabelName.trim() && editingLabel) {
+      let logoUrl = editingLabel.logo; // Manter logo existente por padrão
+
+      // Se há um novo preview, usar ele
+      if (logoPreview !== null) {
+        logoUrl = logoPreview;
+      }
+
       const updatedLabel = {
         ...editingLabel,
         name: newLabelName.trim(),
         color: selectedColor.color,
-        bgColor: selectedColor.bgColor
+        bgColor: selectedColor.bgColor,
+        logo: logoUrl
       };
+      
+      console.log('✅ Label editada:', updatedLabel);
       onEditLabel(updatedLabel);
-      setEditingLabel(null);
-      setNewLabelName('');
-      setSelectedColor(labelColors[0]);
+      resetForm();
+    }
+  };
+
+  const resetForm = () => {
+    setEditingLabel(null);
+    setIsCreating(false);
+    setNewLabelName('');
+    setSelectedColor(labelColors[0]);
+    setLogoFile(null);
+    setLogoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleLogoChange = async (e) => {
+    const file = e.target.files[0];
+    console.log('📷 Arquivo selecionado:', file);
+    if (file) {
+      // Validar tipo de arquivo
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione apenas arquivos de imagem.');
+        return;
+      }
+
+      // Validar tamanho (máx 5MB para o arquivo original)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('A imagem deve ter no máximo 5MB.');
+        return;
+      }
+
+      setLogoFile(file);
+      
+      // Criar preview da imagem simples
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        console.log('✅ Preview criado');
+        setLogoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -45,21 +116,35 @@ const LabelManager = ({ labels, onClose, onCreateLabel, onEditLabel, onDeleteLab
     setNewLabelName(label.name);
     const colorMatch = labelColors.find(c => c.color === label.color) || labelColors[0];
     setSelectedColor(colorMatch);
+    
+    // Carregar logo da label (do localStorage ou URL)
+    if (label.logo) {
+      // Se o logo começar com 'data:', é uma imagem base64 salva
+      // Se começar com '/', é uma URL de imagem estática
+      setLogoPreview(label.logo);
+    } else {
+      setLogoPreview(null);
+    }
+    
+    setLogoFile(null);
     setIsCreating(false);
   };
 
   const cancelEdit = () => {
-    setEditingLabel(null);
-    setIsCreating(false);
-    setNewLabelName('');
-    setSelectedColor(labelColors[0]);
+    resetForm();
   };
 
   const startCreate = () => {
+    console.log('📝 Iniciando criação de nova label...');
     setIsCreating(true);
     setEditingLabel(null);
     setNewLabelName('');
     setSelectedColor(labelColors[0]);
+    setLogoFile(null);
+    setLogoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -69,6 +154,9 @@ const LabelManager = ({ labels, onClose, onCreateLabel, onEditLabel, onDeleteLab
           <h2>🏷️ Gerenciar Labels</h2>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
+
+        {/* DEBUG */}
+        {console.log('🔍 Estado atual:', { isCreating, editingLabel })}
 
         <div className="labels-list">
           <h3>Labels Existentes</h3>
@@ -139,6 +227,66 @@ const LabelManager = ({ labels, onClose, onCreateLabel, onEditLabel, onDeleteLab
               </div>
 
               <div className="form-group">
+                <label>Logo/Imagem da Label</label>
+                <div className="logo-upload-section">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleLogoChange}
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                  />
+                  
+                  {logoPreview ? (
+                    <div className="logo-preview">
+                      <img 
+                        src={logoPreview} 
+                        alt="Preview do logo" 
+                        style={{ 
+                          width: 80, 
+                          height: 40, 
+                          objectFit: 'contain',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          padding: '4px'
+                        }}
+                      />
+                      <div className="logo-actions">
+                        <button 
+                          type="button" 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="btn-change-logo"
+                        >
+                          📷 Trocar
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={removeLogo}
+                          className="btn-remove-logo"
+                        >
+                          🗑️ Remover
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="logo-upload-area">
+                      <button 
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="btn-upload-logo"
+                      >
+                        📷 Adicionar Logo/Imagem
+                      </button>
+                      <small style={{ marginTop: '8px', color: '#666', display: 'block' }}>
+                        Formatos aceitos: JPG, PNG, GIF, SVG (máx. 5MB)<br/>
+                        Recomendado: 200x100px para melhor qualidade
+                      </small>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
                 <label>Cor da Label</label>
                 <div className="color-selector">
                   {labelColors.map((colorOption, index) => (
@@ -165,10 +313,30 @@ const LabelManager = ({ labels, onClose, onCreateLabel, onEditLabel, onDeleteLab
                   className="label-preview large"
                   style={{
                     backgroundColor: selectedColor.bgColor,
-                    color: selectedColor.color
+                    color: selectedColor.color,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '12px',
+                    minHeight: '80px'
                   }}
                 >
-                  {newLabelName || 'Nome da label'}
+                  {logoPreview && (
+                    <img 
+                      src={logoPreview} 
+                      alt="Preview" 
+                      style={{ 
+                        width: 60, 
+                        height: 30, 
+                        objectFit: 'contain',
+                        marginBottom: '6px' 
+                      }}
+                    />
+                  )}
+                  <span style={{ fontWeight: 500 }}>
+                    {newLabelName || 'Nome da label'}
+                  </span>
                 </div>
               </div>
 
@@ -186,7 +354,14 @@ const LabelManager = ({ labels, onClose, onCreateLabel, onEditLabel, onDeleteLab
 
         {!isCreating && !editingLabel && (
           <div className="add-label-section">
-            <button className="btn-add-label" onClick={startCreate}>
+            <button 
+              className="btn-add-label" 
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('🖱️ Botão + Nova Label clicado!');
+                startCreate();
+              }}
+            >
               + Nova Label
             </button>
           </div>
