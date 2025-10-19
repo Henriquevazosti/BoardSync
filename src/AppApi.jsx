@@ -94,57 +94,23 @@ function AppContent() {
     );
   }
 
-  // Dados mockados para desenvolvimento (até implementarmos boards)
-  const mockData = {
+  // Estrutura vazia para boards (dados vêm da API)
+  const emptyBoardData = {
     lists: [
       {
-        id: 'list-todo',
+        id: 'default-list-todo',
         name: 'A Fazer',
-        cards: [
-          {
-            id: 'card-1',
-            title: 'Integrar API de Autenticação',
-            description: 'Conectar login/registro com o backend',
-            category: 'frontend',
-            priority: 'alta',
-            dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-            assignees: [user],
-            labels: ['Feature'],
-            position: 1
-          }
-        ]
+        cards: []
       },
       {
-        id: 'list-doing',
+        id: 'default-list-doing',
         name: 'Em Progresso',
-        cards: [
-          {
-            id: 'card-2',
-            title: 'Conectar Workspaces',
-            description: 'Implementar CRUD de workspaces',
-            category: 'frontend',
-            priority: 'alta',
-            assignees: [user],
-            labels: ['In Progress'],
-            position: 1
-          }
-        ]
+        cards: []
       },
       {
-        id: 'list-done',
+        id: 'default-list-done',
         name: 'Concluído',
-        cards: [
-          {
-            id: 'card-3',
-            title: 'Configurar Backend',
-            description: 'API REST configurada com SQLite',
-            category: 'backend',
-            priority: 'alta',
-            assignees: [user],
-            labels: ['Done'],
-            position: 1
-          }
-        ]
+        cards: []
       }
     ]
   };
@@ -203,7 +169,7 @@ function AppContent() {
             </div>
           ) : (
             <div className="board">
-              {mockData.lists.map(list => (
+              {emptyBoardData.lists.map(list => (
                 <Column
                   key={list.id}
                   listId={list.id}

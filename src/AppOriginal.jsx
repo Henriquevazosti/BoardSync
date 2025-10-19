@@ -28,7 +28,7 @@ import {
   isDueSoon,
   createActivity,
   activityTypes
-} from './data/initialData';
+} from './data/productionInitialData';
 import { authService } from './services/authService.js';
 import './styles/themes.css';
 import './App.css';

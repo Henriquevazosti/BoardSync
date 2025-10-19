@@ -18,7 +18,7 @@ import Register from './components/Register/Register';
 import DataManager from './components/DataManager/DataManager';
 import AddListButton from './components/AddListButton/AddListButton';
 import { syncUsersWithAPI } from './services/userService';
-import { initialData } from './data/initialData';
+import { initialData } from './data/productionInitialData';
 import { activityTypes, createActivity } from './utils/activityUtils';
 import { isOverdue, isDueToday, isDueSoon } from './utils/dateUtils';
 import './App.css';

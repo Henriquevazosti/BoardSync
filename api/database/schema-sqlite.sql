@@ -248,62 +248,64 @@ CREATE INDEX idx_activities_card ON activities(card_id);
 CREATE INDEX idx_sessions_token ON user_sessions(token);
 
 -- ========================================
--- DADOS INICIAIS
+-- DADOS INICIAIS - COMENTADOS PARA PRODUÇÃO
 -- ========================================
 
--- Organização padrão
-INSERT INTO organizations (id, name, slug, description) 
-VALUES ('default-org', 'BoardSync', 'boardsync', 'Organização padrão do BoardSync');
+-- Os dados abaixo são exemplos de demonstração e devem ser criados via API em produção
 
--- Usuário administrador padrão
-INSERT INTO users (id, organization_id, email, password_hash, name, role) 
-VALUES (
-    'admin-user',
-    'default-org',
-    'admin@boardsync.com',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
-    'Admin',
-    'admin'
-);
+-- Exemplo de organização padrão (comentado para produção)
+-- INSERT INTO organizations (id, name, slug, description) 
+-- VALUES ('default-org', 'BoardSync', 'boardsync', 'Organização padrão do BoardSync');
 
--- Workspace padrão
-INSERT INTO workspaces (id, organization_id, name, description, created_by) 
-VALUES (
-    'default-workspace',
-    'default-org',
-    'Projeto Principal',
-    'Workspace padrão para desenvolvimento',
-    'admin-user'
-);
+-- Exemplo de usuário administrador padrão (comentado para produção)
+-- INSERT INTO users (id, organization_id, email, password_hash, name, role) 
+-- VALUES (
+--     'admin-user',
+--     'default-org',
+--     'admin@boardsync.com',
+--     '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+--     'Admin',
+--     'admin'
+-- );
 
--- Board padrão
-INSERT INTO boards (id, workspace_id, name, description, created_by) 
-VALUES (
-    'default-board',
-    'default-workspace',
-    'Kanban Board',
-    'Board principal para organização de tarefas',
-    'admin-user'
-);
+-- Exemplo de workspace padrão (comentado para produção)
+-- INSERT INTO workspaces (id, organization_id, name, description, created_by) 
+-- VALUES (
+--     'default-workspace',
+--     'default-org',
+--     'Projeto Principal',
+--     'Workspace padrão para desenvolvimento',
+--     'admin-user'
+-- );
 
--- Listas padrão
-INSERT INTO board_lists (id, board_id, name, position) VALUES
-('list-todo', 'default-board', 'A Fazer', 1),
-('list-doing', 'default-board', 'Em Progresso', 2),
-('list-done', 'default-board', 'Concluído', 3);
+-- Exemplo de board padrão (comentado para produção)
+-- INSERT INTO boards (id, workspace_id, name, description, created_by) 
+-- VALUES (
+--     'default-board',
+--     'default-workspace',
+--     'Kanban Board',
+--     'Board principal para organização de tarefas',
+--     'admin-user'
+-- );
 
--- Labels padrão
-INSERT INTO labels (id, board_id, name, color, bg_color) VALUES
-('label-bug', 'default-board', 'Bug', '#ffffff', '#d73a49'),
-('label-feature', 'default-board', 'Feature', '#ffffff', '#0366d6'),
-('label-improvement', 'default-board', 'Melhoria', '#ffffff', '#28a745');
+-- Exemplo de listas padrão (comentado para produção)
+-- INSERT INTO board_lists (id, board_id, name, position) VALUES
+-- ('list-todo', 'default-board', 'A Fazer', 1),
+-- ('list-doing', 'default-board', 'Em Progresso', 2),
+-- ('list-done', 'default-board', 'Concluído', 3);
 
--- Membros do Workspace padrão
-INSERT INTO workspace_members (id, workspace_id, user_id, role, invited_by) 
-VALUES ('default-member', 'default-workspace', 'admin-user', 'admin', 'admin-user');
+-- Exemplo de labels padrão (comentado para produção)
+-- INSERT INTO labels (id, board_id, name, color, bg_color) VALUES
+-- ('label-bug', 'default-board', 'Bug', '#ffffff', '#d73a49'),
+-- ('label-feature', 'default-board', 'Feature', '#ffffff', '#0366d6'),
+-- ('label-improvement', 'default-board', 'Melhoria', '#ffffff', '#28a745');
 
--- Cards de exemplo
-INSERT INTO cards (id, list_id, title, description, position, priority, created_by) VALUES
-('card-1', 'list-todo', 'Configurar Backend', 'Configurar servidor Node.js e banco de dados', 1, 'alta', 'admin-user'),
-('card-2', 'list-doing', 'Implementar API', 'Desenvolver endpoints REST da API', 1, 'alta', 'admin-user'),
-('card-3', 'list-done', 'Setup Inicial', 'Configuração inicial do projeto', 1, 'media', 'admin-user');
+-- Exemplo de membros do Workspace padrão (comentado para produção)
+-- INSERT INTO workspace_members (id, workspace_id, user_id, role, invited_by) 
+-- VALUES ('default-member', 'default-workspace', 'admin-user', 'admin', 'admin-user');
+
+-- Exemplo de cards de demonstração (comentado para produção)
+-- INSERT INTO cards (id, list_id, title, description, position, priority, created_by) VALUES
+-- ('card-1', 'list-todo', 'Configurar Backend', 'Configurar servidor Node.js e banco de dados', 1, 'alta', 'admin-user'),
+-- ('card-2', 'list-doing', 'Implementar API', 'Desenvolver endpoints REST da API', 1, 'alta', 'admin-user'),
+-- ('card-3', 'list-done', 'Setup Inicial', 'Configuração inicial do projeto', 1, 'media', 'admin-user');

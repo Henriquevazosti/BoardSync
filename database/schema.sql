@@ -362,39 +362,41 @@ LEFT JOIN workspaces w ON a.workspace_id = w.id
 ORDER BY a.created_at DESC;
 
 -- ========================================
--- DADOS INICIAIS/SEED
+-- DADOS INICIAIS/SEED - COMENTADOS PARA PRODUÇÃO
 -- ========================================
 
--- Inserir organização padrão
-INSERT INTO organizations (id, name, slug, description) VALUES 
-('550e8400-e29b-41d4-a716-446655440000', 'BoardSync Demo', 'boardsync-demo', 'Organização de demonstração do BoardSync');
+-- Os dados abaixo são exemplos de demonstração e devem ser criados via API em produção
 
--- Inserir usuários padrão
-INSERT INTO users (id, organization_id, email, password_hash, name, avatar, color, bg_color, role) VALUES 
-('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440000', 'admin@boardsync.com', crypt('admin123', gen_salt('bf')), 'Administrador', '👨‍💼', '#0052cc', '#e6f3ff', 'admin'),
-('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440000', 'ana.silva@boardsync.com', crypt('password123', gen_salt('bf')), 'Ana Silva', '👩‍💻', '#00875a', '#e3fcef', 'member'),
-('550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440000', 'carlos.santos@boardsync.com', crypt('password123', gen_salt('bf')), 'Carlos Santos', '👨‍💼', '#de350b', '#ffebe6', 'member');
+-- Exemplo de organização padrão (comentado para produção)
+-- INSERT INTO organizations (id, name, slug, description) VALUES 
+-- ('550e8400-e29b-41d4-a716-446655440000', 'BoardSync Demo', 'boardsync-demo', 'Organização de demonstração do BoardSync');
 
--- Inserir workspace padrão
-INSERT INTO workspaces (id, organization_id, name, description, created_by) VALUES 
-('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440000', 'Projeto Principal', 'Workspace principal do projeto', '550e8400-e29b-41d4-a716-446655440001');
+-- Exemplo de usuários padrão (comentado para produção)
+-- INSERT INTO users (id, organization_id, email, password_hash, name, avatar, color, bg_color, role) VALUES 
+-- ('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440000', 'admin@boardsync.com', crypt('admin123', gen_salt('bf')), 'Administrador', '👨‍💼', '#0052cc', '#e6f3ff', 'admin'),
+-- ('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440000', 'ana.silva@boardsync.com', crypt('password123', gen_salt('bf')), 'Ana Silva', '👩‍💻', '#00875a', '#e3fcef', 'member'),
+-- ('550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440000', 'carlos.santos@boardsync.com', crypt('password123', gen_salt('bf')), 'Carlos Santos', '👨‍💼', '#de350b', '#ffebe6', 'member');
 
--- Inserir board padrão
-INSERT INTO boards (id, workspace_id, name, description, created_by) VALUES 
-('550e8400-e29b-41d4-a716-446655440020', '550e8400-e29b-41d4-a716-446655440010', 'Desenvolvimento', 'Board para gerenciar o desenvolvimento', '550e8400-e29b-41d4-a716-446655440001');
+-- Exemplo de workspace padrão (comentado para produção)
+-- INSERT INTO workspaces (id, organization_id, name, description, created_by) VALUES 
+-- ('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440000', 'Projeto Principal', 'Workspace principal do projeto', '550e8400-e29b-41d4-a716-446655440001');
 
--- Inserir listas padrão
-INSERT INTO board_lists (id, board_id, name, position) VALUES 
-('550e8400-e29b-41d4-a716-446655440030', '550e8400-e29b-41d4-a716-446655440020', 'Backlog', 1),
-('550e8400-e29b-41d4-a716-446655440031', '550e8400-e29b-41d4-a716-446655440020', 'Em Desenvolvimento', 2),
-('550e8400-e29b-41d4-a716-446655440032', '550e8400-e29b-41d4-a716-446655440020', 'Em Revisão', 3),
-('550e8400-e29b-41d4-a716-446655440033', '550e8400-e29b-41d4-a716-446655440020', 'Concluído', 4);
+-- Exemplo de board padrão (comentado para produção)
+-- INSERT INTO boards (id, workspace_id, name, description, created_by) VALUES 
+-- ('550e8400-e29b-41d4-a716-446655440020', '550e8400-e29b-41d4-a716-446655440010', 'Desenvolvimento', 'Board para gerenciar o desenvolvimento', '550e8400-e29b-41d4-a716-446655440001');
 
--- Inserir labels padrão
-INSERT INTO labels (id, board_id, name, color, bg_color) VALUES 
-('550e8400-e29b-41d4-a716-446655440040', '550e8400-e29b-41d4-a716-446655440020', 'Frontend', '#0052cc', '#e6f3ff'),
-('550e8400-e29b-41d4-a716-446655440041', '550e8400-e29b-41d4-a716-446655440020', 'Backend', '#00875a', '#e3fcef'),
-('550e8400-e29b-41d4-a716-446655440042', '550e8400-e29b-41d4-a716-446655440020', 'Urgente', '#de350b', '#ffebe6');
+-- Exemplo de listas padrão (comentado para produção)
+-- INSERT INTO board_lists (id, board_id, name, position) VALUES 
+-- ('550e8400-e29b-41d4-a716-446655440030', '550e8400-e29b-41d4-a716-446655440020', 'Backlog', 1),
+-- ('550e8400-e29b-41d4-a716-446655440031', '550e8400-e29b-41d4-a716-446655440020', 'Em Desenvolvimento', 2),
+-- ('550e8400-e29b-41d4-a716-446655440032', '550e8400-e29b-41d4-a716-446655440020', 'Em Revisão', 3),
+-- ('550e8400-e29b-41d4-a716-446655440033', '550e8400-e29b-41d4-a716-446655440020', 'Concluído', 4);
+
+-- Exemplo de labels padrão (comentado para produção)
+-- INSERT INTO labels (id, board_id, name, color, bg_color) VALUES 
+-- ('550e8400-e29b-41d4-a716-446655440040', '550e8400-e29b-41d4-a716-446655440020', 'Frontend', '#0052cc', '#e6f3ff'),
+-- ('550e8400-e29b-41d4-a716-446655440041', '550e8400-e29b-41d4-a716-446655440020', 'Backend', '#00875a', '#e3fcef'),
+-- ('550e8400-e29b-41d4-a716-446655440042', '550e8400-e29b-41d4-a716-446655440020', 'Urgente', '#de350b', '#ffebe6');
 
 -- ========================================
 -- POLÍTICAS DE SEGURANÇA (RLS)
