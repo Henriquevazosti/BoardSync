@@ -25,9 +25,15 @@ class LabelController {
       }
 
       // Buscar labels do board
-      const labels = await dbAdapter.findMany('labels', { 
+      let labels = await dbAdapter.findMany('labels', { 
         board_id: boardId 
       });
+
+      // Garante que cada label tenha o campo 'logo' preenchido
+      labels = labels.map(label => ({
+        ...label,
+        logo: label.logo || `/logos/${label.id}.png`
+      }));
 
       res.json({
         labels,
@@ -60,7 +66,12 @@ class LabelController {
         return res.status(403).json({ error: 'Acesso negado à label' });
       }
 
-      res.json({ label });
+      // Garante que a label tenha o campo 'logo' preenchido
+      const labelWithLogo = {
+        ...label,
+        logo: label.logo || `/logos/${label.id}.png`
+      };
+      res.json({ label: labelWithLogo });
     } catch (error) {
       logger.error('Error getting label by ID:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -96,6 +107,7 @@ class LabelController {
         name,
         color,
         bg_color: color, // A tabela usa bg_color em vez de color
+        logo: `/logos/${name.toLowerCase().replace(/\s+/g, '-')}.png`,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -104,7 +116,10 @@ class LabelController {
 
       res.status(201).json({
         message: 'Label criada com sucesso',
-        label
+        label: {
+          ...label,
+          logo: label.logo || `/logos/${label.id}.png`
+        }
       });
     } catch (error) {
       logger.error('Error creating label:', error);
@@ -145,13 +160,20 @@ class LabelController {
         updateData.color = color;
         updateData.bg_color = color; // Atualizar ambos os campos de cor
       }
+      // Atualiza logo se nome mudar
+      if (name !== undefined) {
+        updateData.logo = `/logos/${name.toLowerCase().replace(/\s+/g, '-')}.png`;
+      }
 
       // Atualizar label
       const updatedLabel = await dbAdapter.update('labels', { id }, updateData);
 
       res.json({
         message: 'Label atualizada com sucesso',
-        label: updatedLabel
+        label: {
+          ...updatedLabel,
+          logo: updatedLabel.logo || `/logos/${updatedLabel.id}.png`
+        }
       });
     } catch (error) {
       logger.error('Error updating label:', error);

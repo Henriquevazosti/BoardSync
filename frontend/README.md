@@ -7,6 +7,32 @@ Um sistema completo de gerenciamento de projetos estilo Kanban, inspirado no Tre
 ![Status](https://img.shields.io/badge/Status-Produção-success.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
+---
+
+## Como rodar o frontend
+
+1. Instale as dependências:
+   ```sh
+   npm install
+   ```
+2. Inicie o servidor de desenvolvimento:
+   ```sh
+   npm run dev
+   ```
+
+O frontend estará disponível em http://localhost:3000
+
+## Estrutura de pastas
+- `src/` — código-fonte React
+- `public/` — arquivos estáticos
+- `services/` — integração com API
+- `components/` — componentes reutilizáveis
+- `contexts/` — contextos globais
+- `hooks/` — hooks customizados
+- `utils/` — utilitários
+
+---
+
 ## 🚀 Funcionalidades
 
 ### 🔐 **Sistema de Autenticação**
@@ -382,38 +408,7 @@ cd boardsync
 
 2. **Instale as dependências:**
 ```bash
-## 🏁 Subindo o ambiente completo (Backend + Frontend)
-
-### 1. Subir o Backend (API)
-
-```powershell
-cd api
 npm install
-npm run dev:sqlite
-```
-
-O backend estará disponível em: http://localhost:3001
-
-### 2. Subir o Frontend (React)
-
-Abra um novo terminal, volte para a raiz do projeto:
-
-```powershell
-cd ..
-npm install
-npm run dev
-```
-
-O frontend estará disponível em: http://localhost:3000
-
----
-
-### 📝 Dica rápida
-- Sempre rode `npm install` na primeira vez ou após atualizar dependências.
-- O comando `npm run dev:sqlite` já prepara o banco SQLite automaticamente.
-- Para resetar o banco, apague o arquivo `api/database/boardsync.db` e rode novamente.
-
----
 ```
 
 3. **Execute o projeto:**

@@ -1,10 +1,33 @@
-# BoardSync API# BoardSync API
+# BoardSync API
 
+API REST para o sistema BoardSync.
 
+---
 
-API REST para o sistema BoardSync. Documentação completa disponível no [README principal](../README.md).API REST para o sistema BoardSync. Documentação completa disponível no [README principal](../README.md).
+## Como rodar o backend
 
+1. Instale as dependências:
+   ```sh
+   npm install
+   ```
+2. Inicie o servidor de desenvolvimento (SQLite):
+   ```sh
+   npm run dev:sqlite
+   ```
+   Ou para PostgreSQL:
+   ```sh
+   npm run dev
+   ```
 
+O backend estará disponível em http://localhost:3001
+
+## Estrutura de pastas
+- `src/` — código-fonte da API
+- `database/` — scripts e migrações do banco
+- `logs/` — arquivos de log
+- `uploads/` — arquivos enviados
+
+---
 
 ## 🚀 Início Rápido## 🚀 Início Rápido
 
