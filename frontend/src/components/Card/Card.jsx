@@ -22,7 +22,9 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onOpenCardDetail,
   };
 
   const getCategoryInfo = (category) => {
-    return categoryConfig[category] || categoryConfig.atividade;
+  const info = categoryConfig[category];
+  // Fallback seguro se não existir categoria
+  return info || { name: category || 'Sem categoria', icon: '❓', bgColor: '#f5f5f5', color: '#333' };
   };
 
   // Função para renderizar descrição do card com suporte a imagens
@@ -193,8 +195,8 @@ const Card = ({ card, columnId, allCards, allLabels, allUsers, onOpenCardDetail,
       
       <div className="card-header">
         <div className="category-badge" style={{ 
-          backgroundColor: categoryInfo.bgColor,
-          color: categoryInfo.color 
+       backgroundColor: categoryInfo.bgColor || '#f5f5f5',
+       color: categoryInfo.color || '#333'
         }}>
           <span className="category-icon">{categoryInfo.icon}</span>
           <span className="category-name">{categoryInfo.name}</span>

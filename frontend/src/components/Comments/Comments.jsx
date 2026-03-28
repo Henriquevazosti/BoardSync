@@ -5,6 +5,10 @@ import CommentHistory from '../CommentHistory/CommentHistory';
 import './Comments.css';
 
 const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteComment, onEditComment }) => {
+  // Log para depuração do usuário recebido
+  React.useEffect(() => {
+    console.log('Comments.jsx: Usuário recebido:', currentUser);
+  }, [currentUser]);
   const [newComment, setNewComment] = useState('');
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -17,21 +21,28 @@ const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteCo
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if ((!newComment.trim() && selectedFiles.length === 0) || !currentUser || isSubmitting) {
+    if (isSubmitting) return;
+
+    // Validação básica
+    if (!currentUser) {
+      alert('Usuário não identificado. Faça login novamente.');
+      return;
+    }
+    if (!newComment.trim() && selectedFiles.length === 0) {
+      alert('Digite um comentário ou envie um arquivo.');
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      // Processar anexos se houver
+      // Simula upload de arquivos (mock)
       const attachments = selectedFiles.map(file => ({
-        id: file.id,
+        id: file.id || Date.now().toString(),
         name: file.name,
         size: file.size,
         type: file.type,
         mimeType: file.mimeType,
-        url: file.url, // Em um app real, seria o URL após upload para servidor
+        url: file.url,
         uploadDate: new Date().toISOString()
       }));
 
@@ -40,11 +51,17 @@ const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteCo
         text: newComment.trim(),
         author: currentUser,
         timestamp: new Date().toISOString(),
-        cardId: cardId,
+        cardId,
         attachments: attachments.length > 0 ? attachments : undefined
       };
 
-      onAddComment(comment);
+      console.log('Enviando comentário:', comment);
+      if (typeof onAddComment === 'function') {
+        onAddComment(comment);
+        alert('Comentário enviado com sucesso!');
+      } else {
+        alert('Função de adicionar comentário não está disponível.');
+      }
       setNewComment('');
       setSelectedFiles([]);
       setIsAddingComment(false);

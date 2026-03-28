@@ -42,7 +42,9 @@ const CardDetailView = ({
   const [isEditingDescription, setIsEditingDescription] = useState(false);
 
   const getCategoryInfo = (category) => {
-    return categoryConfig[category] || categoryConfig.atividade;
+  const info = categoryConfig[category];
+  // Fallback seguro se não existir categoria
+  return info || { name: category || 'Sem categoria', icon: '❓', bgColor: '#f5f5f5', color: '#333' };
   };
 
   const getPriorityClass = (priority) => {

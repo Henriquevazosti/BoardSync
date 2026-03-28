@@ -27,7 +27,18 @@ import './App.css';
 
 function App() {
   // Estados de autenticação
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    // Tenta restaurar do localStorage ao inicializar
+    const savedUser = localStorage.getItem('boardsync_user') || localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
   const [currentPage, setCurrentPage] = useState('login'); // 'login', 'register', 'board'
   
   // Estados do board
@@ -157,12 +168,10 @@ function App() {
     
     // Se os dados já vêm do Login.jsx (que já fez a autenticação)
     if (userData && userData.token) {
+      localStorage.setItem('boardsync_user', JSON.stringify(userData)); // <-- Adicione esta linha
       setUser(userData);
       setCurrentPage('board');
-      
-      // Sincronizar usuários com a API
       await syncUsers();
-      
       return true;
     }
     
@@ -183,12 +192,10 @@ function App() {
       if (data.success && data.token) {
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
+        localStorage.setItem('boardsync_user', JSON.stringify(data.user)); // <-- Adicione esta linha
         setUser(data.user);
         setCurrentPage('board');
-        
         await syncUsers();
-        
         return true;
       } else {
         throw new Error(data.message || 'Erro no login');
@@ -964,6 +971,7 @@ function App() {
             allCards={data.cards}
             allUsers={data.users}
             comments={comments.filter(c => c.cardId === selectedCardForComments.id)}
+            currentUser={user}
             onAddComment={handleAddComment}
             onDeleteComment={handleDeleteComment}
             onEditComment={handleEditComment}
