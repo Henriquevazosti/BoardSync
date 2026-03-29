@@ -2,6 +2,15 @@ import { v4 as uuidv4 } from 'uuid';
 import dbAdapter from '../config/dbAdapter.js';
 import logger from '../config/logger.js';
 
+const serializeComment = (comment) => ({
+  ...comment,
+  cardId: comment.card_id,
+  userId: comment.user_id,
+  text: comment.content,
+  createdAt: comment.created_at,
+  updatedAt: comment.updated_at
+});
+
 class CommentController {
   // Listar comentários de um card
   async list(req, res) {
@@ -31,9 +40,16 @@ class CommentController {
         card_id: cardId 
       }, ['created_at', 'desc']);
 
+      const serializedComments = comments.map(serializeComment);
+
       res.json({
-        comments,
-        total: comments.length
+        success: true,
+        data: {
+          comments: serializedComments,
+          total: serializedComments.length
+        },
+        comments: serializedComments,
+        total: serializedComments.length
       });
     } catch (error) {
       logger.error('Error listing card comments:', error);
@@ -64,7 +80,15 @@ class CommentController {
         return res.status(403).json({ error: 'Acesso negado ao comentário' });
       }
 
-      res.json({ comment });
+      const serializedComment = serializeComment(comment);
+
+      res.json({
+        success: true,
+        data: {
+          comment: serializedComment
+        },
+        comment: serializedComment
+      });
     } catch (error) {
       logger.error('Error getting comment by ID:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -115,9 +139,15 @@ class CommentController {
         avatar: user.avatar
       };
 
+      const serializedComment = serializeComment(comment);
+
       res.status(201).json({
+        success: true,
         message: 'Comentário criado com sucesso',
-        comment
+        data: {
+          comment: serializedComment
+        },
+        comment: serializedComment
       });
     } catch (error) {
       logger.error('Error creating comment:', error);
@@ -163,9 +193,15 @@ class CommentController {
 
       const updatedComment = await dbAdapter.update('comments', { id }, updateData);
 
+      const serializedComment = serializeComment(updatedComment);
+
       res.json({
+        success: true,
         message: 'Comentário atualizado com sucesso',
-        comment: updatedComment
+        data: {
+          comment: serializedComment
+        },
+        comment: serializedComment
       });
     } catch (error) {
       logger.error('Error updating comment:', error);
@@ -206,7 +242,11 @@ class CommentController {
       await dbAdapter.delete('comments', { id });
 
       res.json({
-        message: 'Comentário deletado com sucesso'
+        success: true,
+        message: 'Comentário deletado com sucesso',
+        data: {
+          id
+        }
       });
     } catch (error) {
       logger.error('Error deleting comment:', error);

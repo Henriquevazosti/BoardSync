@@ -2,6 +2,15 @@ import { v4 as uuidv4 } from 'uuid';
 import dbAdapter from '../config/dbAdapter.js';
 import logger from '../config/logger.js';
 
+const serializeWorkspace = (workspace) => ({
+  ...workspace,
+  organizationId: workspace.organization_id,
+  createdBy: workspace.created_by,
+  createdAt: workspace.created_at,
+  updatedAt: workspace.updated_at,
+  deletedAt: workspace.deleted_at ?? null
+});
+
 class WorkspaceController {
   // Listar workspaces do usuário
   async list(req, res) {
@@ -24,9 +33,16 @@ class WorkspaceController {
         }
       }
 
+      const serializedWorkspaces = workspaces.map(serializeWorkspace);
+
       res.json({
-        workspaces,
-        total: workspaces.length
+        success: true,
+        data: {
+          workspaces: serializedWorkspaces,
+          total: serializedWorkspaces.length
+        },
+        workspaces: serializedWorkspaces,
+        total: serializedWorkspaces.length
       });
     } catch (error) {
       logger.error('List workspaces error:', error);
@@ -69,9 +85,15 @@ class WorkspaceController {
 
       logger.info(`Workspace created: ${name} by ${req.user.email}`);
 
+      const serializedWorkspace = serializeWorkspace(createdWorkspace);
+
       res.status(201).json({
+        success: true,
         message: 'Workspace criado com sucesso',
-        workspace: createdWorkspace
+        data: {
+          workspace: serializedWorkspace
+        },
+        workspace: serializedWorkspace
       });
     } catch (error) {
       logger.error('Create workspace error:', error);
@@ -99,9 +121,19 @@ class WorkspaceController {
         return res.status(403).json({ error: 'Acesso negado ao workspace' });
       }
 
+      const serializedWorkspace = {
+        ...serializeWorkspace(workspace),
+        user_role: membership.role,
+        userRole: membership.role
+      };
+
       res.json({
-        ...workspace,
-        user_role: membership.role
+        success: true,
+        data: {
+          workspace: serializedWorkspace
+        },
+        workspace: serializedWorkspace,
+        ...serializedWorkspace
       });
     } catch (error) {
       logger.error('Get workspace error:', error);
@@ -132,9 +164,17 @@ class WorkspaceController {
       }
 
       updateData.updated_at = new Date().toISOString();
-      await dbAdapter.update('workspaces', { id }, updateData);
+      const updatedWorkspace = await dbAdapter.update('workspaces', { id }, updateData);
+      const serializedWorkspace = serializeWorkspace(updatedWorkspace);
 
-      res.json({ message: 'Workspace atualizado com sucesso' });
+      res.json({
+        success: true,
+        message: 'Workspace atualizado com sucesso',
+        data: {
+          workspace: serializedWorkspace
+        },
+        workspace: serializedWorkspace
+      });
     } catch (error) {
       logger.error('Update workspace error:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -166,7 +206,11 @@ class WorkspaceController {
         deleted_at: new Date().toISOString()
       });
 
-      res.json({ message: 'Workspace deletado com sucesso' });
+      res.json({
+        success: true,
+        message: 'Workspace deletado com sucesso',
+        data: { id }
+      });
     } catch (error) {
       logger.error('Delete workspace error:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -215,7 +259,15 @@ class WorkspaceController {
         joined_at: new Date().toISOString()
       });
 
-      res.json({ message: 'Membro adicionado com sucesso' });
+      res.json({
+        success: true,
+        message: 'Membro adicionado com sucesso',
+        data: {
+          workspaceId: id,
+          userId: user.id,
+          role
+        }
+      });
     } catch (error) {
       logger.error('Add member error:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -243,7 +295,14 @@ class WorkspaceController {
         user_id: userId
       });
 
-      res.json({ message: 'Membro removido com sucesso' });
+      res.json({
+        success: true,
+        message: 'Membro removido com sucesso',
+        data: {
+          workspaceId: id,
+          userId
+        }
+      });
     } catch (error) {
       logger.error('Remove member error:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });

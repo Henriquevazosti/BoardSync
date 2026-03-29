@@ -12,7 +12,7 @@ const createCardSchema = Joi.object({
     'string.max': 'Título deve ter no máximo 500 caracteres',
     'any.required': 'Título é obrigatório'
   }),
-  description: Joi.string().max(10000).optional(),
+  description: Joi.string().max(10000).allow('').optional(),
   priority: Joi.string().valid('baixa', 'media', 'alta').optional().default('media'),
   category: Joi.string().max(50).optional().default('tarefa'),
   due_date: Joi.date().iso().optional(),
@@ -92,7 +92,7 @@ router.get(
  * @desc Buscar card por ID
  * @access Private
  */
-router.get('/:id', validateParams(uuidSchema), cardController.getById);
+router.get('/:id', cardController.getById);
 
 /**
  * @route POST /api/v1/cards/list/:listId
@@ -113,7 +113,6 @@ router.post(
  */
 router.put(
   '/:id',
-  validateParams(uuidSchema),
   validateRequest(updateCardSchema),
   cardController.update
 );

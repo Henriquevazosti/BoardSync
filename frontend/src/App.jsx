@@ -19,6 +19,8 @@ import DataManager from './components/DataManager/DataManager';
 import AddListButton from './components/AddListButton/AddListButton';
 import { buildApiUrl } from './config/api';
 import { syncUsersWithAPI } from './services/userService';
+import { workspaceService } from './services/workspaceService';
+import { boardService } from './services/boardService';
 import { initialData } from './data/productionInitialData';
 import { activityTypes, createActivity } from './utils/activityUtils';
 import { isOverdue, isDueToday, isDueSoon } from './utils/dateUtils';
@@ -27,6 +29,38 @@ import './styles/themes.css';
 import './App.css';
 import commentService from './services/commentService';
 import cardService from './services/cardService';
+import listService from './services/listService';
+
+const createEmptyBoardState = (baseData) => ({
+  ...baseData,
+  cards: {},
+  columns: {},
+  columnOrder: []
+});
+
+const normalizeCardFromApi = (apiCard, fallback = {}) => ({
+  id: apiCard.id,
+  title: apiCard.title,
+  description: apiCard.description || '',
+  priority: apiCard.priority || 'media',
+  category: apiCard.category || 'tarefa',
+  labels: fallback.labels || apiCard.labels || [],
+  assignedUsers: fallback.assignedUsers || apiCard.assignedUsers || [],
+  dueDate: apiCard.due_date || fallback.dueDate || null,
+  createdAt: apiCard.created_at || fallback.createdAt || new Date().toISOString(),
+  createdBy: apiCard.created_by || fallback.createdBy || null,
+  comments: fallback.comments || apiCard.comments || [],
+  attachments: fallback.attachments || apiCard.attachments || [],
+  completedAt: apiCard.completed_at || fallback.completedAt || null,
+  isBlocked: Boolean(apiCard.is_blocked),
+  blockReason: apiCard.block_reason || '',
+  startDate: apiCard.start_date || fallback.startDate || null,
+  estimatedHours: apiCard.estimated_hours ?? fallback.estimatedHours ?? null,
+  actualHours: apiCard.actual_hours ?? fallback.actualHours ?? null,
+  coverImage: apiCard.cover_image || fallback.coverImage || '',
+  columnId: apiCard.list_id || fallback.columnId || null,
+  parentId: apiCard.parent_card_id || fallback.parentId || null
+});
 
 function App() {
   // Estados de autenticação
@@ -66,6 +100,8 @@ function App() {
   const [selectedCardForDetail, setSelectedCardForDetail] = useState(null);
   const [isTeamChatOpen, setIsTeamChatOpen] = useState(false);
   const [isDataManagerOpen, setIsDataManagerOpen] = useState(false);
+  const [currentBoardId, setCurrentBoardId] = useState(null);
+  const [isBoardLoading, setIsBoardLoading] = useState(false);
   
   // Estados para dados dinâmicos
   const [comments, setComments] = useState([]);
@@ -79,12 +115,16 @@ function App() {
     
     if (savedToken && savedUser) {
       try {
+        localStorage.setItem('boardsync_token', savedToken);
         const userData = JSON.parse(savedUser);
         setUser(userData);
         setCurrentPage('board');
         
-        // Sincronizar usuários com a API após restaurar sessão
-        syncUsers();
+        // Sincronizar usuários e board persistidos na API após restaurar sessão
+        setIsBoardLoading(true);
+        Promise.all([syncUsers(), loadBoardData()]).finally(() => {
+          setIsBoardLoading(false);
+        });
       } catch (error) {
         console.error('Erro ao restaurar sessão:', error);
         handleLogout();
@@ -166,16 +206,107 @@ function App() {
     }
   };
 
+  const loadBoardData = async () => {
+    try {
+      let workspace = null;
+      const workspacesResponse = await workspaceService.getWorkspaces();
+      const workspaces = [...(workspacesResponse.workspaces || [])].sort(
+        (left, right) => new Date(right.updated_at || right.created_at || 0) - new Date(left.updated_at || left.created_at || 0)
+      );
+      workspace = workspaces[0] || null;
+
+      if (!workspace) {
+        const createdWorkspaceResponse = await workspaceService.createWorkspace({
+          name: 'Workspace Principal',
+          description: 'Workspace criado automaticamente para o ambiente stage',
+          color: '#0b6b4b',
+          visibility: 'private'
+        });
+        workspace = createdWorkspaceResponse.workspace;
+      }
+
+      let board = null;
+      const boardsResponse = await boardService.getBoards(workspace.id);
+      const boards = [...(boardsResponse.boards || [])].sort(
+        (left, right) => new Date(right.updated_at || right.created_at || 0) - new Date(left.updated_at || left.created_at || 0)
+      );
+      board = boards[0] || null;
+
+      if (!board) {
+        const createdBoardResponse = await boardService.createBoard(workspace.id, {
+          name: 'Board Principal',
+          description: 'Board criado automaticamente para o ambiente stage',
+          background_color: '#ffffff'
+        });
+        board = createdBoardResponse.board;
+      }
+
+      setCurrentBoardId(board.id);
+
+      let boardResponse = await boardService.getBoard(board.id);
+      let lists = [...(boardResponse.lists || [])].sort((left, right) => (left.position || 0) - (right.position || 0));
+
+      if (lists.length === 0) {
+        const defaultLists = ['Backlog', 'Em desenvolvimento', 'Em revisão', 'Concluido'];
+        for (const listName of defaultLists) {
+          await listService.create(board.id, { name: listName });
+        }
+        boardResponse = await boardService.getBoard(board.id);
+        lists = [...(boardResponse.lists || [])].sort((left, right) => (left.position || 0) - (right.position || 0));
+      }
+
+      const cardResponses = await Promise.all(
+        lists.map((list) => cardService.list(list.id).catch(() => ({ cards: [] })))
+      );
+
+      const cards = {};
+      const columns = {};
+      const columnOrder = [];
+
+      lists.forEach((list, index) => {
+        const listCards = [...(cardResponses[index].cards || [])].sort((left, right) => (left.position || 0) - (right.position || 0));
+
+        columns[list.id] = {
+          id: list.id,
+          title: list.name,
+          color: list.color || null,
+          cardIds: []
+        };
+        columnOrder.push(list.id);
+
+        listCards.forEach((apiCard) => {
+          const normalizedCard = normalizeCardFromApi(apiCard);
+          cards[normalizedCard.id] = normalizedCard;
+          columns[list.id].cardIds.push(normalizedCard.id);
+        });
+      });
+
+      setData((prevData) => ({
+        ...prevData,
+        cards,
+        columns,
+        columnOrder
+      }));
+    } catch (error) {
+      console.error('Erro ao carregar board do backend:', error);
+      setData((prevData) => createEmptyBoardState(prevData));
+    }
+  };
+
   // Login
   const handleLogin = async (userData) => {
     console.log('🔐 handleLogin chamado com:', userData);
     
     // Se os dados já vêm do Login.jsx (que já fez a autenticação)
     if (userData && userData.token) {
+      localStorage.setItem('boardsync_token', userData.token);
+      localStorage.setItem('authToken', userData.token);
       localStorage.setItem('boardsync_user', JSON.stringify(userData)); // <-- Adicione esta linha
       setUser(userData);
       setCurrentPage('board');
-      await syncUsers();
+      setIsBoardLoading(true);
+      await Promise.all([syncUsers(), loadBoardData()]);
+      setIsBoardLoading(false);
       return true;
     }
     
@@ -193,13 +324,16 @@ function App() {
       
       const data = await response.json();
       
-      if (data.success && data.token) {
+      if (data.token) {
+        localStorage.setItem('boardsync_token', data.token);
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('boardsync_user', JSON.stringify(data.user)); // <-- Adicione esta linha
         setUser(data.user);
         setCurrentPage('board');
-        await syncUsers();
+        setIsBoardLoading(true);
+        await Promise.all([syncUsers(), loadBoardData()]);
+        setIsBoardLoading(false);
         return true;
       } else {
         throw new Error(data.message || 'Erro no login');
@@ -217,11 +351,16 @@ function App() {
     
     // Se os dados já vêm do Register.jsx (que já fez o registro)
     if (userData && userData.token) {
+      localStorage.setItem('boardsync_token', userData.token);
+      localStorage.setItem('authToken', userData.token);
+      localStorage.setItem('boardsync_user', JSON.stringify(userData.user || userData));
       setUser(userData);
       setCurrentPage('board');
       
-      // Sincronizar usuários com a API
-      await syncUsers();
+      // Sincronizar usuários e board com a API
+      setIsBoardLoading(true);
+      await Promise.all([syncUsers(), loadBoardData()]);
+      setIsBoardLoading(false);
       
       return true;
     }
@@ -241,7 +380,7 @@ function App() {
       
       const data = await response.json();
       
-      if (data.success) {
+      if (data.token || data.user || data.message) {
         return handleLogin({
           email: userData.email,
           password: userData.password
@@ -267,6 +406,8 @@ function App() {
     // Resetar estados
     setUser(null);
     setCurrentPage('login');
+    setCurrentBoardId(null);
+    setData(createEmptyBoardState(initialData));
   };
 
   // Navegação
@@ -277,14 +418,14 @@ function App() {
   
   // Função para resetar o board
   const resetBoard = async () => {
-    if (window.confirm('Tem certeza que deseja resetar o board para o estado inicial? Todas as alterações serão perdidas.')) {
-      // Restaurar dados iniciais
-      setData(initialData);
-      
-      // Se estiver logado, sincronizar usuários para manter usuários reais
-      if (user && localStorage.getItem('authToken')) {
-        console.log('🔄 Resetando board e sincronizando usuários da API');
-        await syncUsers();
+    if (window.confirm('Tem certeza que deseja recarregar o board a partir do backend? Alterações locais não salvas serão descartadas.')) {
+      if (user && (localStorage.getItem('boardsync_token') || localStorage.getItem('authToken'))) {
+        console.log('🔄 Recarregando board e sincronizando usuários da API');
+        setIsBoardLoading(true);
+        await Promise.all([syncUsers(), loadBoardData()]);
+        setIsBoardLoading(false);
+      } else {
+        setData(createEmptyBoardState(initialData));
       }
     }
   };
@@ -295,56 +436,102 @@ function App() {
     setIsModalOpen(true);
   };
 
-  const handleCreateCard = (newCard) => {
-    const cardId = `card-${Date.now()}`;
+  const handleCreateCard = async (newCard) => {
+    try {
+      const createPayload = {
+        title: newCard.title,
+        priority: newCard.priority,
+        category: newCard.category
+      };
 
-    const finalCard = {
-      ...newCard,
-      id: cardId,
-      createdAt: new Date().toISOString(),
-      createdBy: user ? user.id : 'user-1', // Usar ID do usuário logado ou padrão
-      comments: []
-    };
-
-    setData(prevData => {
-      const column = prevData.columns[newCard.columnId];
-      if (!column) {
-        alert('Coluna não encontrada ao criar o card. Por favor, selecione uma coluna válida.');
-        return prevData;
+      if (newCard.description) {
+        createPayload.description = newCard.description;
       }
-      return {
+
+      if (newCard.dueDate) {
+        createPayload.due_date = newCard.dueDate;
+      }
+
+      if (newCard.parentId) {
+        createPayload.parent_card_id = newCard.parentId;
+      }
+
+      const dataResp = await cardService.create(newCard.columnId, createPayload);
+      const card = normalizeCardFromApi(dataResp.card, {
+        labels: newCard.labels || [],
+        assignedUsers: newCard.assignedUsers || [],
+        attachments: newCard.attachments || [],
+        completedAt: newCard.completedAt || null,
+        columnId: newCard.columnId
+      });
+
+      setData(prevData => {
+        const column = prevData.columns[newCard.columnId];
+        if (!column) {
+          alert('Coluna não encontrada ao criar o card. Por favor, selecione uma coluna válida.');
+          return prevData;
+        }
+        return {
+          ...prevData,
+          cards: {
+            ...prevData.cards,
+            [card.id]: card
+          },
+          columns: {
+            ...prevData.columns,
+            [newCard.columnId]: {
+              ...column,
+              cardIds: Array.isArray(column.cardIds) ? [...column.cardIds, card.id] : [card.id]
+            }
+          }
+        };
+      });
+
+      setIsModalOpen(false);
+      // Registrar atividade
+      addActivity(card.id, activityTypes.CARD_CREATED, `Card criado: ${newCard.title}`);
+    } catch (err) {
+      alert(`Erro ao criar card: ${err.message}`);
+    }
+  };
+
+  const handleUpdateCard = async (updatedCard) => {
+    try {
+      const response = await cardService.update(updatedCard.id, {
+        title: updatedCard.title,
+        description: updatedCard.description,
+        priority: updatedCard.priority,
+        category: updatedCard.category,
+        is_blocked: updatedCard.isBlocked,
+        block_reason: updatedCard.blockReason || '',
+        due_date: updatedCard.dueDate,
+        start_date: updatedCard.startDate || null,
+        estimated_hours: updatedCard.estimatedHours ?? null,
+        actual_hours: updatedCard.actualHours ?? null,
+        cover_image: updatedCard.coverImage || ''
+      });
+
+      const normalizedCard = normalizeCardFromApi(response.card || {}, {
+        ...updatedCard,
+        columnId: updatedCard.columnId || data.cards[updatedCard.id]?.columnId
+      });
+
+      setData(prevData => ({
         ...prevData,
         cards: {
           ...prevData.cards,
-          [cardId]: finalCard
-        },
-        columns: {
-          ...prevData.columns,
-          [newCard.columnId]: {
-            ...column,
-            cardIds: Array.isArray(column.cardIds) ? [...column.cardIds, cardId] : [cardId]
+          [updatedCard.id]: {
+            ...prevData.cards[updatedCard.id],
+            ...updatedCard,
+            ...normalizedCard
           }
         }
-      };
-    });
-
-    setIsModalOpen(false);
-
-    // Registrar atividade
-    addActivity(cardId, activityTypes.CARD_CREATED, `Card criado: ${newCard.title}`);
-  };
-
-  const handleUpdateCard = (updatedCard) => {
-    setData(prevData => ({
-      ...prevData,
-      cards: {
-        ...prevData.cards,
-        [updatedCard.id]: updatedCard
-      }
-    }));
-    
-    // Registrar atividade de edição
-    addActivity(updatedCard.id, activityTypes.CARD_UPDATED, `Card atualizado: ${updatedCard.title}`);
+      }));
+      
+      addActivity(updatedCard.id, activityTypes.CARD_UPDATED, `Card atualizado: ${updatedCard.title}`);
+    } catch (error) {
+      alert(`Erro ao atualizar card: ${error.message}`);
+    }
   };
 
   const handleOpenCardDetail = (card) => {
@@ -353,89 +540,111 @@ function App() {
   };
   
   // Movimentação de cards
-  const moveCard = (cardId, sourceColumnId, destinationColumnId, newIndex) => {
-    setData(prevData => {
+  const moveCard = async (cardId, sourceColumnId, destinationColumnId, newIndex) => {
+    try {
+      const safeIndex = Number.isInteger(newIndex) && newIndex >= 0
+        ? newIndex
+        : data.columns[destinationColumnId]?.cardIds.length || 0;
+
+      await cardService.move(cardId, destinationColumnId, safeIndex + 1, sourceColumnId);
+
+      setData(prevData => {
       // Se está movendo dentro da mesma coluna
-      if (sourceColumnId === destinationColumnId) {
-        const column = prevData.columns[sourceColumnId];
-        const newCardIds = Array.from(column.cardIds);
-        const currentIndex = newCardIds.indexOf(cardId);
+        if (sourceColumnId === destinationColumnId) {
+          const column = prevData.columns[sourceColumnId];
+          const newCardIds = Array.from(column.cardIds);
+          const currentIndex = newCardIds.indexOf(cardId);
         
-        // Remover da posição atual e inserir na nova posição
-        newCardIds.splice(currentIndex, 1);
-        newCardIds.splice(newIndex, 0, cardId);
+          newCardIds.splice(currentIndex, 1);
+          newCardIds.splice(safeIndex, 0, cardId);
         
+          return {
+            ...prevData,
+            columns: {
+              ...prevData.columns,
+              [sourceColumnId]: {
+                ...column,
+                cardIds: newCardIds
+              }
+            }
+          };
+        }
+      
+        const sourceColumn = prevData.columns[sourceColumnId];
+        const destinationColumn = prevData.columns[destinationColumnId];
+      
+        const sourceCardIds = Array.from(sourceColumn.cardIds);
+        const destinationCardIds = Array.from(destinationColumn.cardIds);
+      
+        sourceCardIds.splice(sourceCardIds.indexOf(cardId), 1);
+      
+        destinationCardIds.splice(safeIndex, 0, cardId);
+      
         return {
           ...prevData,
           columns: {
             ...prevData.columns,
             [sourceColumnId]: {
-              ...column,
-              cardIds: newCardIds
+              ...sourceColumn,
+              cardIds: sourceCardIds
+            },
+            [destinationColumnId]: {
+              ...destinationColumn,
+              cardIds: destinationCardIds
+            }
+          },
+          cards: {
+            ...prevData.cards,
+            [cardId]: {
+              ...prevData.cards[cardId],
+              columnId: destinationColumnId
             }
           }
         };
-      } 
+      });
       
-      // Se está movendo para outra coluna
-      const sourceColumn = prevData.columns[sourceColumnId];
-      const destinationColumn = prevData.columns[destinationColumnId];
+      const sourceName = data.columns[sourceColumnId].title;
+      const destName = data.columns[destinationColumnId].title;
+      const cardTitle = data.cards[cardId].title;
       
-      const sourceCardIds = Array.from(sourceColumn.cardIds);
-      const destinationCardIds = Array.from(destinationColumn.cardIds);
-      
-      // Remover da coluna de origem
-      sourceCardIds.splice(sourceCardIds.indexOf(cardId), 1);
-      
-      // Adicionar à coluna de destino na posição correta
-      destinationCardIds.splice(newIndex, 0, cardId);
-      
-      return {
+      addActivity(
+        cardId, 
+        activityTypes.CARD_MOVED, 
+        `Card movido: ${cardTitle}`,
+        null,
+        { sourceColumn: sourceName, destinationColumn: destName }
+      );
+    } catch (error) {
+      alert(`Erro ao mover card: ${error.message}`);
+    }
+  };
+
+  const handleAddColumn = async (columnTitle = 'Nova Lista') => {
+    if (!currentBoardId) {
+      alert('Board atual não encontrado.');
+      return;
+    }
+
+    try {
+      const response = await listService.create(currentBoardId, { name: columnTitle });
+      const newColumn = {
+        id: response.list.id,
+        title: response.list.name,
+        color: response.list.color || null,
+        cardIds: []
+      };
+
+      setData(prevData => ({
         ...prevData,
         columns: {
           ...prevData.columns,
-          [sourceColumnId]: {
-            ...sourceColumn,
-            cardIds: sourceCardIds
-          },
-          [destinationColumnId]: {
-            ...destinationColumn,
-            cardIds: destinationCardIds
-          }
-        }
-      };
-    });
-    
-    // Registrar atividade de movimentação
-    const sourceName = data.columns[sourceColumnId].title;
-    const destName = data.columns[destinationColumnId].title;
-    const cardTitle = data.cards[cardId].title;
-    
-    addActivity(
-      cardId, 
-      activityTypes.CARD_MOVED, 
-      `Card movido: ${cardTitle}`,
-      null,
-      { sourceColumn: sourceName, destinationColumn: destName }
-    );
-  };
-
-  const handleAddColumn = (columnTitle = 'Nova Lista') => {
-    const newColumnId = `column-${Date.now()}`;
-    const newColumn = {
-      id: newColumnId,
-      title: columnTitle,
-      cardIds: [],
-    };
-
-    setData(prevData => ({
-      ...prevData,
-      columns: {
-        ...prevData.columns,
-        [newColumnId]: newColumn,
-      },
-      columnOrder: [...prevData.columnOrder, newColumnId],
-    }));
+          [newColumn.id]: newColumn,
+        },
+        columnOrder: [...prevData.columnOrder, newColumn.id],
+      }));
+    } catch (error) {
+      alert(`Erro ao criar lista: ${error.message}`);
+    }
   };
 
   // FUNÇÕES DE BLOQUEIO DE CARDS
@@ -447,15 +656,19 @@ function App() {
 
   const handleConfirmBlock = async (cardId, blockReason) => {
     try {
-      await cardService.block(cardId, blockReason);
+      const response = await cardService.block(cardId, blockReason);
+      const updatedCard = normalizeCardFromApi(response.card || {}, {
+        ...data.cards[cardId],
+        blockReason,
+        isBlocked: true
+      });
       setData(prev => ({
         ...prev,
         cards: {
           ...prev.cards,
           [cardId]: {
             ...prev.cards[cardId],
-            isBlocked: true,
-            blockReason: blockReason
+            ...updatedCard
           }
         }
       }));
@@ -470,15 +683,19 @@ function App() {
 
   const handleUnblock = async (cardId) => {
     try {
-      await cardService.unblock(cardId);
+      const response = await cardService.unblock(cardId);
+      const updatedCard = normalizeCardFromApi(response.card || {}, {
+        ...data.cards[cardId],
+        blockReason: '',
+        isBlocked: false
+      });
       setData(prev => ({
         ...prev,
         cards: {
           ...prev.cards,
           [cardId]: {
             ...prev.cards[cardId],
-            isBlocked: false,
-            blockReason: ''
+            ...updatedCard
           }
         }
       }));
@@ -758,66 +975,85 @@ function App() {
 
   // FUNÇÕES DE GERENCIAMENTO DE COLUNAS
 
-  const handleEditColumn = (columnId, newTitle) => {
-    setData(prevData => ({
-      ...prevData,
-      columns: {
-        ...prevData.columns,
-        [columnId]: {
-          ...prevData.columns[columnId],
-          title: newTitle
+  const handleEditColumn = async (columnId, newTitle) => {
+    try {
+      await listService.update(columnId, { name: newTitle });
+      setData(prevData => ({
+        ...prevData,
+        columns: {
+          ...prevData.columns,
+          [columnId]: {
+            ...prevData.columns[columnId],
+            title: newTitle
+          }
         }
-      }
-    }));
+      }));
+    } catch (error) {
+      alert(`Erro ao atualizar lista: ${error.message}`);
+    }
   };
 
-  const handleDeleteColumn = (columnId) => {
+  const handleDeleteColumn = async (columnId) => {
     // Impedir exclusão da última coluna
     if (data.columnOrder.length <= 1) {
       alert('Não é possível excluir a última lista. O board deve ter pelo menos uma lista.');
       return;
     }
 
-    setData(prevData => {
-      const columnToDelete = prevData.columns[columnId];
+    try {
+      const columnToDelete = data.columns[columnId];
       const cardsInColumn = columnToDelete.cardIds;
-      
-      // Se há cards na coluna, mover para a primeira coluna disponível
+
       if (cardsInColumn.length > 0) {
-        const remainingColumns = prevData.columnOrder.filter(id => id !== columnId);
+        const remainingColumns = data.columnOrder.filter(id => id !== columnId);
         if (remainingColumns.length > 0) {
           const firstColumnId = remainingColumns[0];
-          
-          // Mover todos os cards da coluna deletada para a primeira coluna
-          const updatedColumns = {
-            ...prevData.columns,
-            [firstColumnId]: {
-              ...prevData.columns[firstColumnId],
-              cardIds: [...prevData.columns[firstColumnId].cardIds, ...cardsInColumn]
-            }
-          };
-          
-          // Remover a coluna deletada
-          delete updatedColumns[columnId];
-          
-          return {
-            ...prevData,
-            columns: updatedColumns,
-            columnOrder: prevData.columnOrder.filter(id => id !== columnId)
+          const basePosition = data.columns[firstColumnId].cardIds.length;
+
+          for (let index = 0; index < cardsInColumn.length; index += 1) {
+            await cardService.move(cardsInColumn[index], firstColumnId, basePosition + index + 1, columnId);
           };
         }
       }
-      
-      // Se não há cards, apenas remover a coluna
-      const updatedColumns = { ...prevData.columns };
-      delete updatedColumns[columnId];
-      
-      return {
-        ...prevData,
-        columns: updatedColumns,
-        columnOrder: prevData.columnOrder.filter(id => id !== columnId)
-      };
-    });
+
+      await listService.delete(columnId);
+
+      setData(prevData => {
+        const cardsToMove = prevData.columns[columnId].cardIds;
+        const remainingColumns = prevData.columnOrder.filter(id => id !== columnId);
+        const updatedColumns = { ...prevData.columns };
+
+        if (cardsToMove.length > 0 && remainingColumns.length > 0) {
+          const firstColumnId = remainingColumns[0];
+          updatedColumns[firstColumnId] = {
+            ...updatedColumns[firstColumnId],
+            cardIds: [...updatedColumns[firstColumnId].cardIds, ...cardsToMove]
+          };
+        }
+
+        delete updatedColumns[columnId];
+
+        const updatedCards = { ...prevData.cards };
+        if (cardsToMove.length > 0 && remainingColumns.length > 0) {
+          const firstColumnId = remainingColumns[0];
+          cardsToMove.forEach((cardId) => {
+            updatedCards[cardId] = {
+              ...updatedCards[cardId],
+              columnId: firstColumnId
+            };
+          });
+        }
+
+        return {
+          ...prevData,
+          cards: updatedCards,
+          columns: updatedColumns,
+          columnOrder: remainingColumns
+        };
+      });
+    } catch (error) {
+      alert(`Erro ao excluir lista: ${error.message}`);
+    }
   };
   
   // RENDERIZAÇÃO CONDICIONAL
@@ -840,6 +1076,18 @@ function App() {
         />
       );
     }
+  }
+
+  if (isBoardLoading) {
+    return (
+      <ThemeProvider>
+        <div className="app">
+          <div className="board" style={{ padding: '32px', justifyContent: 'center' }}>
+            <p>Carregando board do backend...</p>
+          </div>
+        </div>
+      </ThemeProvider>
+    );
   }
 
   console.log('🔍 App: Renderizando board', { 

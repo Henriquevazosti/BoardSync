@@ -76,12 +76,10 @@ export const requireWorkspaceAccess = async (req, res, next) => {
     }
 
     // Verificar se o usuário tem acesso ao workspace
-    const membership = await db('workspace_members')
-      .where({
-        workspace_id: workspaceId,
-        user_id: req.user.id
-      })
-      .first();
+    const membership = await dbAdapter.findOne('workspace_members', {
+      workspace_id: workspaceId,
+      user_id: req.user.id
+    });
 
     if (!membership) {
       return res.status(403).json({ 
@@ -105,22 +103,23 @@ export const requireBoardAccess = async (req, res, next) => {
       return res.status(400).json({ error: 'ID do board necessário' });
     }
 
-    // Verificar acesso ao board (direto ou via workspace)
-    const boardAccess = await db('boards as b')
-      .leftJoin('board_members as bm', function() {
-        this.on('b.id', '=', 'bm.board_id')
-            .andOn('bm.user_id', '=', db.raw('?', [req.user.id]));
-      })
-      .leftJoin('workspace_members as wm', function() {
-        this.on('b.workspace_id', '=', 'wm.workspace_id')
-            .andOn('wm.user_id', '=', db.raw('?', [req.user.id]));
-      })
-      .where('b.id', boardId)
-      .andWhere(function() {
-        this.whereNotNull('bm.id').orWhereNotNull('wm.id');
-      })
-      .select('b.*', 'bm.role as board_role', 'wm.role as workspace_role')
-      .first();
+    const board = await dbAdapter.findOne('boards', { id: boardId });
+
+    if (!board) {
+      return res.status(404).json({ error: 'Board não encontrado' });
+    }
+
+    const boardMembership = await dbAdapter.findOne('board_members', {
+      board_id: boardId,
+      user_id: req.user.id
+    });
+
+    const workspaceMembership = await dbAdapter.findOne('workspace_members', {
+      workspace_id: board.workspace_id,
+      user_id: req.user.id
+    });
+
+    const boardAccess = boardMembership || workspaceMembership;
 
     if (!boardAccess) {
       return res.status(403).json({ 
@@ -128,7 +127,11 @@ export const requireBoardAccess = async (req, res, next) => {
       });
     }
 
-    req.boardAccess = boardAccess;
+    req.boardAccess = {
+      ...board,
+      board_role: boardMembership?.role || null,
+      workspace_role: workspaceMembership?.role || null
+    };
     next();
   } catch (error) {
     logger.error('Board access middleware error:', error);

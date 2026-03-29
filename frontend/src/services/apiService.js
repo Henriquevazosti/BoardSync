@@ -19,7 +19,7 @@ class ApiService {
     };
 
     // Adicionar token de autenticação se existir
-    const token = localStorage.getItem('boardsync_token');
+    const token = localStorage.getItem('boardsync_token') || localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,7 +29,13 @@ class ApiService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        const details = Array.isArray(errorData.details)
+          ? errorData.details.map(detail => `${detail.field}: ${detail.message}`).join(', ')
+          : '';
+        const message = details
+          ? `${errorData.error || 'Erro na API'}: ${details}`
+          : (errorData.error || `HTTP error! status: ${response.status}`);
+        throw new Error(message);
       }
 
       const data = await response.json();

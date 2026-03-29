@@ -150,7 +150,8 @@ const Column = ({ column, cards, totalCards, allCards, allLabels, allUsers, tota
       
       // Executar movimento
       if (onMoveCard && typeof onMoveCard === 'function') {
-        onMoveCard(cardId, sourceColumn, column.id);
+        const destinationIndex = cards.length;
+        onMoveCard(cardId, sourceColumn, column.id, destinationIndex);
         console.log('✅ Column.handleDrop: Movimento executado com sucesso');
       } else {
         console.error('❌ Column.handleDrop: onMoveCard não é uma função válida');

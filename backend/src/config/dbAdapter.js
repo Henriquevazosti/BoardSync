@@ -1,6 +1,42 @@
 import sqlite from './sqlite.js';
 import logger from './logger.js';
 
+const normalizeSqliteValue = (value) => {
+  if (typeof value === 'boolean') {
+    return value ? 1 : 0;
+  }
+
+  return value;
+};
+
+const buildSqliteWhereClause = (where = {}) => {
+  const keys = Object.keys(where);
+
+  if (keys.length === 0) {
+    return { clause: '', values: [] };
+  }
+
+  const parts = [];
+  const values = [];
+
+  for (const key of keys) {
+    const value = where[key];
+
+    if (value === null) {
+      parts.push(`${key} IS NULL`);
+      continue;
+    }
+
+    parts.push(`${key} = ?`);
+    values.push(normalizeSqliteValue(value));
+  }
+
+  return {
+    clause: ` WHERE ${parts.join(' AND ')}`,
+    values
+  };
+};
+
 // Adaptador universal de banco de dados
 class DatabaseAdapter {
   constructor() {
@@ -43,11 +79,8 @@ class DatabaseAdapter {
         return await db(table).where(where).first();
       } else {
         await this.initSQLite();
-        const whereClause = Object.keys(where)
-          .map(key => `${key} = ?`)
-          .join(' AND ');
-        const values = Object.values(where);
-        const sql = `SELECT * FROM ${table} WHERE ${whereClause} LIMIT 1`;
+        const { clause, values } = buildSqliteWhereClause(where);
+        const sql = `SELECT * FROM ${table}${clause} LIMIT 1`;
         const result = sqlite.query(sql, values);
         return result[0] || null;
       }
@@ -76,15 +109,9 @@ class DatabaseAdapter {
       } else {
         await this.initSQLite();
         let sql = `SELECT * FROM ${table}`;
-        let values = [];
-        
-        if (Object.keys(where).length > 0) {
-          const whereClause = Object.keys(where)
-            .map(key => `${key} = ?`)
-            .join(' AND ');
-          sql += ` WHERE ${whereClause}`;
-          values = Object.values(where);
-        }
+        const { clause, values } = buildSqliteWhereClause(where);
+
+        sql += clause;
         
         if (options.orderBy) {
           sql += ` ORDER BY ${options.orderBy} ${options.order || 'ASC'}`;
@@ -113,7 +140,7 @@ class DatabaseAdapter {
         await this.initSQLite();
         const columns = Object.keys(data);
         const placeholders = columns.map(() => '?').join(', ');
-        const values = Object.values(data);
+        const values = Object.values(data).map(normalizeSqliteValue);
         
         const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`;
         sqlite.query(sql, values);
@@ -143,7 +170,10 @@ class DatabaseAdapter {
           .map(key => `${key} = ?`)
           .join(' AND ');
         
-        const values = [...Object.values(data), ...Object.values(where)];
+        const values = [
+          ...Object.values(data).map(normalizeSqliteValue),
+          ...Object.values(where).map(normalizeSqliteValue)
+        ];
         const sql = `UPDATE ${table} SET ${setClause} WHERE ${whereClause}`;
         
         sqlite.query(sql, values);
@@ -168,7 +198,7 @@ class DatabaseAdapter {
         const whereClause = Object.keys(where)
           .map(key => `${key} = ?`)
           .join(' AND ');
-        const values = Object.values(where);
+        const values = Object.values(where).map(normalizeSqliteValue);
         const sql = `DELETE FROM ${table} WHERE ${whereClause}`;
         
         const result = sqlite.query(sql, values);

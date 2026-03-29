@@ -2,6 +2,26 @@ import { v4 as uuidv4 } from 'uuid';
 import dbAdapter from '../config/dbAdapter.js';
 import logger from '../config/logger.js';
 
+const applyTemporaryPositions = async (listId, cardIds) => {
+  for (let index = 0; index < cardIds.length; index += 1) {
+    await dbAdapter.update('cards', { id: cardIds[index] }, {
+      list_id: listId,
+      position: -1 * (index + 1),
+      updated_at: new Date().toISOString()
+    });
+  }
+};
+
+const applyFinalPositions = async (listId, cardIds) => {
+  for (let index = 0; index < cardIds.length; index += 1) {
+    await dbAdapter.update('cards', { id: cardIds[index] }, {
+      list_id: listId,
+      position: index + 1,
+      updated_at: new Date().toISOString()
+    });
+  }
+};
+
 class CardController {
   // Listar cards de uma lista
   async list(req, res) {
@@ -178,9 +198,9 @@ class CardController {
 
       // Atualizar card
       updateData.updated_at = new Date().toISOString();
-      await dbAdapter.update('cards', { id }, updateData);
+      const updatedCard = await dbAdapter.update('cards', { id }, updateData);
 
-      res.json({ message: 'Card atualizado com sucesso' });
+      res.json({ message: 'Card atualizado com sucesso', card: updatedCard });
     } catch (error) {
       logger.error('Update card error:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -226,7 +246,13 @@ class CardController {
   async move(req, res) {
     try {
       const { id } = req.params;
-      const { list_id, position } = req.body;
+      const { new_list_id, new_position, list_id, position } = req.body;
+      const targetListId = new_list_id || list_id;
+      const targetPosition = new_position || position || 1;
+
+      if (!targetListId) {
+        return res.status(400).json({ error: 'Lista de destino é obrigatória' });
+      }
 
       // Verificar se card existe
       const card = await dbAdapter.findOne('cards', { id });
@@ -235,7 +261,7 @@ class CardController {
       }
 
       // Verificar se lista de destino existe
-      const targetList = await dbAdapter.findOne('board_lists', { id: list_id });
+      const targetList = await dbAdapter.findOne('board_lists', { id: targetListId });
       if (!targetList) {
         return res.status(404).json({ error: 'Lista de destino não encontrada' });
       }
@@ -259,14 +285,63 @@ class CardController {
         return res.status(403).json({ error: 'Acesso negado' });
       }
 
-      // Mover card (simplificado)
-      await dbAdapter.update('cards', { id }, {
-        list_id,
-        position: position || 1,
-        updated_at: new Date().toISOString()
+      const sourceCards = await dbAdapter.findMany('cards', {
+        list_id: card.list_id,
+        deleted_at: null
+      }, {
+        orderBy: 'position'
       });
 
-      res.json({ message: 'Card movido com sucesso' });
+      const targetCards = card.list_id === targetListId
+        ? sourceCards
+        : await dbAdapter.findMany('cards', {
+            list_id: targetListId,
+            deleted_at: null
+          }, {
+            orderBy: 'position'
+          });
+
+      if (card.list_id === targetListId) {
+        const reorderedIds = sourceCards
+          .filter((currentCard) => currentCard.id !== id)
+          .map((currentCard) => currentCard.id);
+        const insertIndex = Math.max(0, Math.min(targetPosition - 1, reorderedIds.length));
+
+        reorderedIds.splice(insertIndex, 0, id);
+
+        await applyTemporaryPositions(targetListId, reorderedIds);
+        await applyFinalPositions(targetListId, reorderedIds);
+      } else {
+        const sourceIds = sourceCards
+          .filter((currentCard) => currentCard.id !== id)
+          .map((currentCard) => currentCard.id);
+        const targetIds = targetCards.map((currentCard) => currentCard.id);
+        const insertIndex = Math.max(0, Math.min(targetPosition - 1, targetIds.length));
+
+        targetIds.splice(insertIndex, 0, id);
+
+        if (sourceIds.length > 0) {
+          await applyTemporaryPositions(card.list_id, sourceIds);
+          await applyFinalPositions(card.list_id, sourceIds);
+        }
+
+        const temporaryTargetIds = targetIds.filter((cardId) => cardId !== id);
+        if (temporaryTargetIds.length > 0) {
+          await applyTemporaryPositions(targetListId, temporaryTargetIds);
+        }
+
+        await dbAdapter.update('cards', { id }, {
+          list_id: targetListId,
+          position: -1 * (targetIds.length + 1),
+          updated_at: new Date().toISOString()
+        });
+
+        await applyFinalPositions(targetListId, targetIds);
+      }
+
+      const updatedCard = await dbAdapter.findOne('cards', { id });
+
+      res.json({ message: 'Card movido com sucesso', card: updatedCard });
     } catch (error) {
       logger.error('Move card error:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });

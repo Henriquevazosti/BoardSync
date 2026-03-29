@@ -1,25 +1,33 @@
 import apiService from './apiService.js';
 
+const mergeDataEnvelope = (response) => {
+  if (response?.data && typeof response.data === 'object') {
+    return { ...response, ...response.data };
+  }
+
+  return response;
+};
+
 // Serviço de boards
 export const boardService = {
   // Listar boards de um workspace
   async getBoards(workspaceId) {
-    return await apiService.get(`/boards/workspace/${workspaceId}`);
+    return mergeDataEnvelope(await apiService.get(`/boards/workspace/${workspaceId}`));
   },
 
   // Obter board por ID
   async getBoard(id) {
-    return await apiService.get(`/boards/${id}`);
+    return mergeDataEnvelope(await apiService.get(`/boards/${id}`));
   },
 
   // Criar novo board
   async createBoard(workspaceId, boardData) {
-    return await apiService.post(`/boards/workspace/${workspaceId}`, boardData);
+    return mergeDataEnvelope(await apiService.post(`/boards/workspace/${workspaceId}`, boardData));
   },
 
   // Atualizar board
   async updateBoard(id, boardData) {
-    return await apiService.put(`/boards/${id}`, boardData);
+    return mergeDataEnvelope(await apiService.put(`/boards/${id}`, boardData));
   },
 
   // Deletar board

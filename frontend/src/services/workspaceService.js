@@ -1,25 +1,33 @@
 import apiService from './apiService.js';
 
+const mergeDataEnvelope = (response) => {
+  if (response?.data && typeof response.data === 'object') {
+    return { ...response, ...response.data };
+  }
+
+  return response;
+};
+
 // Serviço de workspaces
 export const workspaceService = {
   // Listar workspaces do usuário
   async getWorkspaces() {
-    return await apiService.get('/workspaces');
+    return mergeDataEnvelope(await apiService.get('/workspaces'));
   },
 
   // Obter workspace por ID
   async getWorkspace(id) {
-    return await apiService.get(`/workspaces/${id}`);
+    return mergeDataEnvelope(await apiService.get(`/workspaces/${id}`));
   },
 
   // Criar novo workspace
   async createWorkspace(workspaceData) {
-    return await apiService.post('/workspaces', workspaceData);
+    return mergeDataEnvelope(await apiService.post('/workspaces', workspaceData));
   },
 
   // Atualizar workspace
   async updateWorkspace(id, workspaceData) {
-    return await apiService.put(`/workspaces/${id}`, workspaceData);
+    return mergeDataEnvelope(await apiService.put(`/workspaces/${id}`, workspaceData));
   },
 
   // Deletar workspace
@@ -29,7 +37,7 @@ export const workspaceService = {
 
   // Adicionar membro ao workspace
   async addMember(workspaceId, userData) {
-    return await apiService.post(`/workspaces/${workspaceId}/members`, userData);
+    return mergeDataEnvelope(await apiService.post(`/workspaces/${workspaceId}/members`, userData));
   },
 
   // Remover membro do workspace

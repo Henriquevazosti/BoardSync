@@ -2,6 +2,14 @@ import { v4 as uuidv4 } from 'uuid';
 import dbAdapter from '../config/dbAdapter.js';
 import logger from '../config/logger.js';
 
+const serializeList = (list) => ({
+  ...list,
+  boardId: list.board_id,
+  createdAt: list.created_at,
+  updatedAt: list.updated_at,
+  deletedAt: list.deleted_at ?? null
+});
+
 class ListController {
   // Listar listas de um board
   async list(req, res) {
@@ -29,9 +37,16 @@ class ListController {
         board_id: boardId 
       }, ['position', 'asc']);
 
+      const serializedLists = lists.map(serializeList);
+
       res.json({
-        lists,
-        total: lists.length
+        success: true,
+        data: {
+          lists: serializedLists,
+          total: serializedLists.length
+        },
+        lists: serializedLists,
+        total: serializedLists.length
       });
     } catch (error) {
       logger.error('Error listing board lists:', error);
@@ -60,7 +75,15 @@ class ListController {
         return res.status(403).json({ error: 'Acesso negado à lista' });
       }
 
-      res.json({ list });
+      const serializedList = serializeList(list);
+
+      res.json({
+        success: true,
+        data: {
+          list: serializedList
+        },
+        list: serializedList
+      });
     } catch (error) {
       logger.error('Error getting list by ID:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -107,9 +130,15 @@ class ListController {
 
       const list = await dbAdapter.insert('board_lists', listData);
 
+      const serializedList = serializeList(list);
+
       res.status(201).json({
+        success: true,
         message: 'Lista criada com sucesso',
-        list
+        data: {
+          list: serializedList
+        },
+        list: serializedList
       });
     } catch (error) {
       logger.error('Error creating list:', error);
@@ -152,9 +181,15 @@ class ListController {
       // Atualizar lista
       const updatedList = await dbAdapter.update('board_lists', { id }, updateData);
 
+      const serializedList = serializeList(updatedList);
+
       res.json({
+        success: true,
         message: 'Lista atualizada com sucesso',
-        list: updatedList
+        data: {
+          list: serializedList
+        },
+        list: serializedList
       });
     } catch (error) {
       logger.error('Error updating list:', error);
@@ -196,7 +231,11 @@ class ListController {
       await dbAdapter.delete('board_lists', { id });
 
       res.json({
-        message: 'Lista deletada com sucesso'
+        success: true,
+        message: 'Lista deletada com sucesso',
+        data: {
+          id
+        }
       });
     } catch (error) {
       logger.error('Error deleting list:', error);
