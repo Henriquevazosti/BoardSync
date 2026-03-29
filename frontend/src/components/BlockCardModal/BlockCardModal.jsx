@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import './BlockCardModal.css';
 
-const BlockCardModal = ({ card, onClose, onBlockCard, onUnblockCard }) => {
+
+const BlockCardModal = ({ card, onClose, onBlock, onUnblock }) => {
   const [blockReason, setBlockReason] = useState(card.blockReason || '');
-  
+
   const handleBlock = (e) => {
     e.preventDefault();
     if (blockReason.trim()) {
-      onBlockCard(card.id, blockReason.trim());
+      onBlock(card.id, blockReason.trim());
       onClose();
     }
   };
 
   const handleUnblock = () => {
-    onUnblockCard(card.id);
+    onUnblock(card.id);
     onClose();
   };
 
