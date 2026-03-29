@@ -69,6 +69,8 @@ function App() {
   
   // Estados para dados dinâmicos
   const [comments, setComments] = useState([]);
+  // Estado para mensagens do chat da equipe
+  const [chatMessages, setChatMessages] = useState([]);
   
   // Efeito para verificar se há token de autenticação salvo no localStorage
   useEffect(() => {
