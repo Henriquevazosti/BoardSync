@@ -35,29 +35,9 @@ const Comments = ({ cardId, comments = [], onAddComment, currentUser, onDeleteCo
 
     setIsSubmitting(true);
     try {
-      // Simula upload de arquivos (mock)
-      const attachments = selectedFiles.map(file => ({
-        id: file.id || Date.now().toString(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        mimeType: file.mimeType,
-        url: file.url,
-        uploadDate: new Date().toISOString()
-      }));
-
-      const comment = {
-        id: Date.now().toString(),
-        text: newComment.trim(),
-        author: currentUser,
-        timestamp: new Date().toISOString(),
-        cardId,
-        attachments: attachments.length > 0 ? attachments : undefined
-      };
-
-      console.log('Enviando comentário:', comment);
+      // Apenas envia o texto do comentário para a função de adicionar
       if (typeof onAddComment === 'function') {
-        onAddComment(comment);
+        await onAddComment({ cardId, text: newComment.trim() });
         alert('Comentário enviado com sucesso!');
       } else {
         alert('Função de adicionar comentário não está disponível.');

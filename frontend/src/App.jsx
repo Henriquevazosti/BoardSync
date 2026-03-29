@@ -25,6 +25,8 @@ import { isOverdue, isDueToday, isDueSoon } from './utils/dateUtils';
 import './App.css';
 import './styles/themes.css';
 import './App.css';
+import commentService from './services/commentService';
+import cardService from './services/cardService';
 
 function App() {
   // Estados de autenticação
@@ -67,7 +69,6 @@ function App() {
   
   // Estados para dados dinâmicos
   const [comments, setComments] = useState([]);
-  const [chatMessages, setChatMessages] = useState([]);
   
   // Efeito para verificar se há token de autenticação salvo no localStorage
   useEffect(() => {
@@ -442,42 +443,48 @@ function App() {
     setIsBlockModalOpen(true);
   };
 
-  const handleConfirmBlock = (cardId, blockReason) => {
-    setData(prevData => ({
-      ...prevData,
-      cards: {
-        ...prevData.cards,
-        [cardId]: {
-          ...prevData.cards[cardId],
-          isBlocked: true,
-          blockReason: blockReason
+  const handleConfirmBlock = async (cardId, blockReason) => {
+    try {
+      await cardService.block(cardId, blockReason);
+      setData(prev => ({
+        ...prev,
+        cards: {
+          ...prev.cards,
+          [cardId]: {
+            ...prev.cards[cardId],
+            isBlocked: true,
+            blockReason: blockReason
+          }
         }
-      }
-    }));
-
-    // Registrar atividade de bloqueio
-    addActivity(cardId, activityTypes.CARD_BLOCKED, `Card bloqueado: ${blockReason}`);
-    
+      }));
+      // Registrar atividade de bloqueio
+      addActivity(cardId, activityTypes.CARD_BLOCKED, `Card bloqueado: ${blockReason}`);
+    } catch (err) {
+      alert('Erro ao bloquear card.');
+    }
     setIsBlockModalOpen(false);
     setSelectedCardForBlock(null);
   };
 
-  const handleUnblock = (cardId) => {
-    setData(prevData => ({
-      ...prevData,
-      cards: {
-        ...prevData.cards,
-        [cardId]: {
-          ...prevData.cards[cardId],
-          isBlocked: false,
-          blockReason: ''
+  const handleUnblock = async (cardId) => {
+    try {
+      await cardService.unblock(cardId);
+      setData(prev => ({
+        ...prev,
+        cards: {
+          ...prev.cards,
+          [cardId]: {
+            ...prev.cards[cardId],
+            isBlocked: false,
+            blockReason: ''
+          }
         }
-      }
-    }));
-
-    // Registrar atividade de desbloqueio
-    addActivity(cardId, activityTypes.CARD_UNBLOCKED, 'Card desbloqueado');
-    
+      }));
+      // Registrar atividade de desbloqueio
+      addActivity(cardId, activityTypes.CARD_UNBLOCKED, 'Card desbloqueado');
+    } catch (err) {
+      alert('Erro ao desbloquear card.');
+    }
     setIsBlockModalOpen(false);
     setSelectedCardForBlock(null);
   };
@@ -611,84 +618,103 @@ function App() {
   const findCardInAllColumns = (cardId) => {
     return data.cards[cardId];
   };
-  
-  const handleViewComments = (cardId) => {
+
+  // Carregar comentários ao abrir modal
+  const handleViewComments = async (cardId) => {
     console.log('handleViewComments chamada com cardId:', cardId);
     const card = findCardInAllColumns(cardId);
-    console.log('Card encontrado:', card);
-    
     if (card) {
       setSelectedCardForComments(card);
       setIsCommentsModalOpen(true);
-      console.log('Modal de comentários aberto');
+      try {
+        const res = await commentService.list(cardId);
+        setComments(res.comments || []);
+      } catch (err) {
+        setComments([]);
+        alert('Erro ao carregar comentários do card.');
+      }
     } else {
+      setComments([]);
       console.log('Card não encontrado!');
     }
   };
 
-  const handleAddComment = (comment) => {
-    setComments(prev => [...prev, comment]);
-    
-    // Adicionar atividade de comentário
-    const activity = createActivity(
-      comment.cardId,
-      user ? user.id : 'user-1',
-      activityTypes.COMMENT_ADDED,
-      'Comentário adicionado',
-      null,
-      { 
-        cardTitle: selectedCardForComments?.title || 'Card',
-        commentText: comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text
-      }
-    );
-    
-    setData(prev => ({
-      ...prev,
-      activities: {
-        ...prev.activities,
-        [activity.id]: activity
-      }
-    }));
-  };
-
-  const handleDeleteComment = (commentId) => {
-    const comment = comments.find(c => c.id === commentId);
-    if (comment) {
-      setComments(prev => prev.filter(c => c.id !== commentId));
-      
-      // Adicionar atividade de remoção de comentário
-      addActivity(
+  // Adicionar comentário via API
+  const handleAddComment = async (comment) => {
+    try {
+      const res = await commentService.add(comment.cardId, comment.text);
+      setComments(prev => [...prev, res.comment]);
+      // Adicionar atividade de comentário
+      const activity = createActivity(
         comment.cardId,
-        activityTypes.COMMENT_DELETED,
-        'Comentário removido',
+        user ? user.id : 'user-1',
+        activityTypes.COMMENT_ADDED,
+        'Comentário adicionado',
         null,
         { 
           cardTitle: selectedCardForComments?.title || 'Card',
           commentText: comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text
         }
       );
+      setData(prev => ({
+        ...prev,
+        activities: {
+          ...prev.activities,
+          [activity.id]: activity
+        }
+      }));
+    } catch (err) {
+      alert('Erro ao adicionar comentário.');
     }
   };
 
-  // Função para editar comentário
-  const handleEditComment = (editedComment) => {
-    setComments(prev => 
-      prev.map(comment => 
-        comment.id === editedComment.id ? editedComment : comment
-      )
-    );
-    
-    // Adicionar atividade de edição de comentário
-    addActivity(
-      editedComment.cardId,
-      activityTypes.COMMENT_EDITED || 'comment_edited',
-      'Comentário editado',
-      null,
-      { 
-        cardTitle: selectedCardForComments?.title || 'Card',
-        commentText: editedComment.text.length > 50 ? editedComment.text.substring(0, 50) + '...' : editedComment.text
+  // Remover comentário via API
+  const handleDeleteComment = async (commentId) => {
+    const comment = comments.find(c => c.id === commentId);
+    if (comment) {
+      try {
+        await commentService.remove(commentId);
+        setComments(prev => prev.filter(c => c.id !== commentId));
+        // Adicionar atividade de remoção de comentário
+        addActivity(
+          comment.cardId,
+          activityTypes.COMMENT_DELETED,
+          'Comentário removido',
+          null,
+          { 
+            cardTitle: selectedCardForComments?.title || 'Card',
+            commentText: comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text
+          }
+        );
+      } catch (err) {
+        alert('Erro ao remover comentário.');
       }
-    );
+    }
+  };
+
+  // Editar comentário via API
+  const handleEditComment = async (editedComment) => {
+    try {
+      await commentService.edit(editedComment.id, editedComment.text);
+      setComments(prev => 
+        prev.map(comment => 
+          comment.id === editedComment.id ? { ...comment, text: editedComment.text } : comment
+        )
+      );
+      // Adicionar atividade de edição de comentário
+      addActivity(
+        editedComment.cardId,
+        activityTypes.COMMENT_EDITED || 'comment_edited',
+        'Comentário editado',
+        null,
+        { 
+          cardTitle: selectedCardForComments?.title || 'Card',
+          commentText: editedComment.text.length > 50 ? editedComment.text.substring(0, 50) + '...' : editedComment.text
+        }
+      );
+    } catch (err) {
+      alert('Erro ao editar comentário.');
+    }
   };
 
   // Funções para o Team Chat
