@@ -146,7 +146,17 @@ class CardController {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const updateData = req.body;
+      const allowedFields = [
+        'title', 'description', 'priority', 'category', 'is_blocked', 'block_reason',
+        'due_date', 'start_date', 'estimated_hours', 'actual_hours', 'cover_image'
+      ];
+      // Filtrar apenas campos permitidos
+      const updateData = {};
+      for (const key of allowedFields) {
+        if (req.body[key] !== undefined) {
+          updateData[key] = req.body[key];
+        }
+      }
 
       // Verificar se card existe
       const card = await dbAdapter.findOne('cards', { id });
