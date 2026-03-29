@@ -1,5 +1,6 @@
 export const notFound = (req, res, next) => {
-  const error = new Error(`Rota não encontrada - ${req.originalUrl}`);
-  error.status = 404;
-  next(error);
+  // Retorna JSON direto para rotas não encontradas
+  res.status(404).json({
+    error: `Rota não encontrada - ${req.originalUrl}`
+  });
 };
