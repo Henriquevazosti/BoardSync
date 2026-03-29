@@ -29,7 +29,7 @@ class AuthController {
         email,
         password_hash,
         name,
-        organization_id: organizationId || 'default-org',
+        organization_id: organizationId || null,
         avatar: '👤',
         color: '#0052cc',
         bg_color: '#e6f3ff',
@@ -50,7 +50,7 @@ class AuthController {
             workspace_id: 'default-workspace',
             user_id: userId,
             role: 'member',
-            invited_by: 'admin-user'
+            invited_by: null
           };
           await dbAdapter.insert('workspace_members', memberData);
         }

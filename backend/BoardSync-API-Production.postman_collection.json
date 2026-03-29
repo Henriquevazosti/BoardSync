@@ -1,0 +1,742 @@
+{
+  "info": {
+    "name": "BoardSync API - Production",
+    "description": "Collection do Postman para a API do BoardSync em produção, com todas as rotas atualmente expostas pelo backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://boardsync.onrender.com/api/v1", "type": "string" },
+    { "key": "auth_token", "value": "", "type": "string" },
+    { "key": "workspace_id", "value": "", "type": "string" },
+    { "key": "board_id", "value": "", "type": "string" },
+    { "key": "list_id", "value": "", "type": "string" },
+    { "key": "card_id", "value": "", "type": "string" },
+    { "key": "label_id", "value": "", "type": "string" },
+    { "key": "comment_id", "value": "", "type": "string" },
+    { "key": "user_id", "value": "", "type": "string" },
+    { "key": "email", "value": "admin@boardsync.com", "type": "string" },
+    { "key": "password", "value": "123456", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Base",
+      "item": [
+        {
+          "name": "Health",
+          "auth": { "type": "noauth" },
+          "request": {
+            "method": "GET",
+            "url": "https://boardsync.onrender.com/health",
+            "description": "Verifica se a API está online."
+          }
+        },
+        {
+          "name": "Root",
+          "auth": { "type": "noauth" },
+          "request": {
+            "method": "GET",
+            "url": "https://boardsync.onrender.com/",
+            "description": "Informações básicas da API."
+          }
+        },
+        {
+          "name": "API Root",
+          "auth": { "type": "noauth" },
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}",
+            "description": "Informações da versão v1 da API."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "auth": { "type": "noauth" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const response = pm.response.json();",
+                  "  if (response.token) pm.environment.set('auth_token', response.token);",
+                  "  if (response.user && response.user.id) pm.environment.set('user_id', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Novo Usuario\",\n  \"email\": \"novo.usuario@boardsync.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": "{{base_url}}/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "auth": { "type": "noauth" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const response = pm.response.json();",
+                  "  if (response.token) pm.environment.set('auth_token', response.token);",
+                  "  if (response.user && response.user.id) pm.environment.set('user_id', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{base_url}}/auth/login"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "auth": { "type": "noauth" },
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}"
+            },
+            "url": "{{base_url}}/auth/forgot-password"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "auth": { "type": "noauth" },
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"newPassword\": \"123456\",\n  \"resetToken\": \"COLOQUE_O_TOKEN_AQUI\"\n}"
+            },
+            "url": "{{base_url}}/auth/reset-password"
+          }
+        },
+        {
+          "name": "Verify Token",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/auth/verify"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const response = pm.response.json();",
+                  "  const users = response.data || response.users || [];",
+                  "  if (users.length > 0 && users[0].id) pm.environment.set('user_id', users[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users"
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users/profile"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Administrador BoardSync\"\n}"
+            },
+            "url": "{{base_url}}/users/profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workspaces",
+      "item": [
+        {
+          "name": "List Workspaces",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const response = pm.response.json();",
+                  "  const workspaces = response.data || response.workspaces || response || [];",
+                  "  if (Array.isArray(workspaces) && workspaces.length > 0 && workspaces[0].id) pm.environment.set('workspace_id', workspaces[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/workspaces"
+          }
+        },
+        {
+          "name": "Get Workspace By Id",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/workspaces/{{workspace_id}}"
+          }
+        },
+        {
+          "name": "Create Workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Workspace Producao\",\n  \"description\": \"Criado via Postman\",\n  \"color\": \"#4CAF50\",\n  \"visibility\": \"private\"\n}"
+            },
+            "url": "{{base_url}}/workspaces"
+          }
+        },
+        {
+          "name": "Update Workspace",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Workspace Atualizado\",\n  \"description\": \"Atualizado via Postman\"\n}"
+            },
+            "url": "{{base_url}}/workspaces/{{workspace_id}}"
+          }
+        },
+        {
+          "name": "Add Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"membro@boardsync.com\",\n  \"role\": \"member\"\n}"
+            },
+            "url": "{{base_url}}/workspaces/{{workspace_id}}/members"
+          }
+        },
+        {
+          "name": "Remove Member",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/workspaces/{{workspace_id}}/members/{{user_id}}"
+          }
+        },
+        {
+          "name": "Delete Workspace",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/workspaces/{{workspace_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Boards",
+      "item": [
+        {
+          "name": "List Boards By Workspace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const response = pm.response.json();",
+                  "  const boards = response.data || response.boards || response || [];",
+                  "  if (Array.isArray(boards) && boards.length > 0 && boards[0].id) pm.environment.set('board_id', boards[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/boards/workspace/{{workspace_id}}"
+          }
+        },
+        {
+          "name": "Get Board By Id",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/boards/{{board_id}}"
+          }
+        },
+        {
+          "name": "Create Board",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Board Producao\",\n  \"description\": \"Criado via Postman\",\n  \"background_color\": \"#0052CC\"\n}"
+            },
+            "url": "{{base_url}}/boards/workspace/{{workspace_id}}"
+          }
+        },
+        {
+          "name": "Update Board",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Board Atualizado\",\n  \"description\": \"Atualizado via Postman\"\n}"
+            },
+            "url": "{{base_url}}/boards/{{board_id}}"
+          }
+        },
+        {
+          "name": "Delete Board",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/boards/{{board_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lists",
+      "item": [
+        {
+          "name": "List Lists By Board",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const response = pm.response.json();",
+                  "  const lists = response.data || response.lists || response || [];",
+                  "  if (Array.isArray(lists) && lists.length > 0 && lists[0].id) pm.environment.set('list_id', lists[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/lists/board/{{board_id}}"
+          }
+        },
+        {
+          "name": "Get List By Id",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/lists/{{list_id}}"
+          }
+        },
+        {
+          "name": "Create List",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nova Lista\",\n  \"color\": \"#FF9800\"\n}"
+            },
+            "url": "{{base_url}}/lists/board/{{board_id}}"
+          }
+        },
+        {
+          "name": "Update List",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lista Atualizada\",\n  \"position\": 1\n}"
+            },
+            "url": "{{base_url}}/lists/{{list_id}}"
+          }
+        },
+        {
+          "name": "Delete List",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/lists/{{list_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cards",
+      "item": [
+        {
+          "name": "List Cards By List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const response = pm.response.json();",
+                  "  const cards = response.data || response.cards || response || [];",
+                  "  if (Array.isArray(cards) && cards.length > 0 && cards[0].id) pm.environment.set('card_id', cards[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/cards/list/{{list_id}}?page=1&limit=50"
+          }
+        },
+        {
+          "name": "Get Card By Id",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/cards/{{card_id}}"
+          }
+        },
+        {
+          "name": "Create Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Novo Card\",\n  \"description\": \"Criado via Postman\",\n  \"priority\": \"media\",\n  \"category\": \"tarefa\"\n}"
+            },
+            "url": "{{base_url}}/cards/list/{{list_id}}"
+          }
+        },
+        {
+          "name": "Update Card",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Card Atualizado\",\n  \"description\": \"Atualizado via Postman\",\n  \"priority\": \"alta\"\n}"
+            },
+            "url": "{{base_url}}/cards/{{card_id}}"
+          }
+        },
+        {
+          "name": "Move Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_list_id\": \"{{list_id}}\",\n  \"new_position\": 1\n}"
+            },
+            "url": "{{base_url}}/cards/{{card_id}}/move"
+          }
+        },
+        {
+          "name": "Assign Users To Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_ids\": [\n    \"{{user_id}}\"\n  ]\n}"
+            },
+            "url": "{{base_url}}/cards/{{card_id}}/assign"
+          }
+        },
+        {
+          "name": "Delete Card",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/cards/{{card_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Labels",
+      "item": [
+        {
+          "name": "List Labels By Board",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const response = pm.response.json();",
+                  "  const labels = response.data || response.labels || response || [];",
+                  "  if (Array.isArray(labels) && labels.length > 0 && labels[0].id) pm.environment.set('label_id', labels[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/labels/board/{{board_id}}"
+          }
+        },
+        {
+          "name": "Get Label By Id",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/labels/{{label_id}}"
+          }
+        },
+        {
+          "name": "Create Label",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Urgente\",\n  \"color\": \"#F44336\",\n  \"description\": \"Label criada via Postman\"\n}"
+            },
+            "url": "{{base_url}}/labels/board/{{board_id}}"
+          }
+        },
+        {
+          "name": "Update Label",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Label Atualizada\",\n  \"color\": \"#9C27B0\"\n}"
+            },
+            "url": "{{base_url}}/labels/{{label_id}}"
+          }
+        },
+        {
+          "name": "Delete Label",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/labels/{{label_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "List Comments By Card",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const response = pm.response.json();",
+                  "  const comments = response.data || response.comments || response || [];",
+                  "  if (Array.isArray(comments) && comments.length > 0 && comments[0].id) pm.environment.set('comment_id', comments[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/comments/card/{{card_id}}"
+          }
+        },
+        {
+          "name": "Get Comment By Id",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/comments/{{comment_id}}"
+          }
+        },
+        {
+          "name": "Create Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Comentario criado via Postman\"\n}"
+            },
+            "url": "{{base_url}}/comments/card/{{card_id}}"
+          }
+        },
+        {
+          "name": "Update Comment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Comentario atualizado via Postman\"\n}"
+            },
+            "url": "{{base_url}}/comments/{{comment_id}}"
+          }
+        },
+        {
+          "name": "Delete Comment",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/comments/{{comment_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Activities",
+      "item": [
+        {
+          "name": "List Activities By Board",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/activities/board/{{board_id}}"
+          }
+        },
+        {
+          "name": "List Activities By Workspace",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/activities/workspace/{{workspace_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Upload",
+      "item": [
+        {
+          "name": "Upload Image",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": "{{base_url}}/upload/image"
+          }
+        },
+        {
+          "name": "Upload File",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": "{{base_url}}/upload/file"
+          }
+        }
+      ]
+    }
+  ]
+}

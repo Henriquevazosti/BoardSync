@@ -42,7 +42,7 @@ class WorkspaceController {
       const workspaceId = uuidv4();
       const workspace = {
         id: workspaceId,
-        organization_id: 'default-org',
+        organization_id: req.user.organization_id || null,
         name,
         description,
         color,
