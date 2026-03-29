@@ -180,23 +180,7 @@ const LoginOriginal = ({ onLogin, onGoToRegister }) => {
           </button>
         </div>
 
-        <div className="demo-info">
-          <h4>Contas de demonstração:</h4>
-          <div className="demo-accounts">
-            <div className="demo-account">
-              <strong>Admin (API):</strong> admin@boardsync.com / password
-            </div>
-            <div className="demo-account">
-              <strong>Admin (Local):</strong> admin@boardsync.com / 123456
-            </div>
-            <div className="demo-account">
-              <strong>Usuário:</strong> user@boardsync.com / 123456
-            </div>
-            <div className="demo-account">
-              <strong>Demo:</strong> demo@boardsync.com / demo123
-            </div>
-          </div>
-        </div>
+        
       </div>
     </div>
   );

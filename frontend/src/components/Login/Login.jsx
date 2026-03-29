@@ -160,21 +160,6 @@ const Login = ({ onLogin, onGoToRegister }) => {
             Criar cadastro
           </button>
         </div>
-
-        <div className="demo-info">
-          <h4>Contas de demonstração:</h4>
-          <div className="demo-accounts">
-            <div className="demo-account">
-              <strong>Admin:</strong> admin@boardsync.com / 123456
-            </div>
-            <div className="demo-account">
-              <strong>Usuário:</strong> user@boardsync.com / 123456
-            </div>
-            <div className="demo-account">
-              <strong>Demo:</strong> demo@boardsync.com / demo123
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
