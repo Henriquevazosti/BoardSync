@@ -17,6 +17,7 @@ import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import DataManager from './components/DataManager/DataManager';
 import AddListButton from './components/AddListButton/AddListButton';
+import { buildApiUrl } from './config/api';
 import { syncUsersWithAPI } from './services/userService';
 import { initialData } from './data/productionInitialData';
 import { activityTypes, createActivity } from './utils/activityUtils';
@@ -177,7 +178,7 @@ function App() {
     
     // Fallback para login direto (se necessário)
     try {
-      const response = await fetch('http://localhost:3001/api/v1/auth/login', {
+      const response = await fetch(buildApiUrl('/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
@@ -224,7 +225,7 @@ function App() {
     
     // Fallback caso necessário
     try {
-      const response = await fetch('http://localhost:3001/api/v1/auth/register', {
+      const response = await fetch(buildApiUrl('/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)

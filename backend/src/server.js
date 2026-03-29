@@ -160,8 +160,29 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.get('/', (req, res) => {
+  res.json({
+    name: 'BoardSync API',
+    status: 'online',
+    health: '/health',
+    api: '/api/v1'
+  });
+});
+
 // Rotas da API
 const apiRouter = express.Router();
+
+apiRouter.get('/', (req, res) => {
+  res.json({
+    name: 'BoardSync API',
+    version: process.env.API_VERSION || 'v1',
+    status: 'online',
+    endpoints: {
+      health: '/health',
+      auth: '/api/v1/auth'
+    }
+  });
+});
 
 // Rotas públicas
 apiRouter.use('/auth', authRoutes);

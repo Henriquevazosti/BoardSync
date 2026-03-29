@@ -1,5 +1,4 @@
-// Serviço para comunicação com a API do BoardSync
-const API_BASE_URL = 'http://localhost:3001/api/v1';
+import { API_BASE_URL, buildApiUrl } from '../config/api.js';
 
 // Função para fazer requisições autenticadas
 async function apiRequest(endpoint, options = {}) {
@@ -39,7 +38,7 @@ export const syncUsersWithAPI = async () => {
     }
 
     console.log('🔑 Token encontrado, fazendo requisição...');
-    const response = await fetch('http://localhost:3001/api/v1/users', {
+    const response = await fetch(buildApiUrl('/users'), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
