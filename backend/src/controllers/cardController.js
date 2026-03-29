@@ -25,11 +25,13 @@ class CardController {
         return res.status(403).json({ error: 'Acesso negado à lista' });
       }
 
-      // Buscar cards da lista
-      const cards = await dbAdapter.findMany('cards', { 
-        list_id: listId 
-      }, { 
-        orderBy: 'position' 
+
+      // Buscar apenas cards não deletados (deleted_at == null)
+      const cards = await dbAdapter.findMany('cards', {
+        list_id: listId,
+        deleted_at: null
+      }, {
+        orderBy: 'position'
       });
 
       res.json({
